@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="button">#FFC53B</color>
+    <color name="red">#FF0000</color>
+    <color name="colorPrimary">#FFC107</color>        <!-- Yellow (Primary) -->
+    <color name="primaryYellow">#FFC107</color>        <!-- Yellow (Primary) -->
+    <color name="colorPrimaryVariant">#FFA000</color> <!-- Darker Yellow -->
+    <color name="colorOnPrimary">#000000</color>      <!-- Black text/icons on Yellow -->
+
+    <color name="colorSecondary">#FFFFFFFF</color>      <!-- Black (Secondary accent) -->
+    <color name="colorSecondaryVariant">#212121</color> <!-- Dark Gray -->
+    <color name="colorOnSecondary">#FFFFFF</color>    <!-- White text/icons on Black -->
+    <color name="gray">#787878</color>
+    <!-- White text/icons on Black -->
+    <color name="facebookBlue">#1877F2</color>
+
+
+    <color name="colorBackground">#FFFFFF</color>     <!-- White background -->
+    <color name="secondaryWhite">#FFFFFF</color>     <!-- White background -->
+    <color name="colorOnBackground">#000000</color>   <!-- Black text on White -->
+
+    <color name="colorSurface">#FFFFFF</color>        <!-- White cards/surfaces -->
+    <color name="colorOnSurface">#000000</color>      <!-- Black text on surfaces -->
+    <color name="textBlack">#000000</color>      <!-- Black text on surfaces -->
+    <color name="secondaryBlack">#000000</color>      <!-- Black text on surfaces -->
+
+    <color name="colorError">#D32F2F</color>          <!-- Red for errors -->
+    <color name="colorOnError">#FFFFFF</color>        <!-- White text on error -->
+
+</resources>
