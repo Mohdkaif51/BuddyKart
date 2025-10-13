@@ -7,6 +7,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
 
+
         <!-- Secondary brand colors -->
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
@@ -28,5 +29,23 @@
     <style name="Theme.BuddyKartStore.AppBarOverlay"
         parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="Theme.BuddyKartStore.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
+    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">
+        <!-- Splash background color -->
+        <item name="windowSplashScreenBackground">@color/white</item>
+
+        <!-- App logo -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/buddykart</item>
+
+        <!-- (Optional) Duration -->
+        <item name="windowSplashScreenAnimationDuration">200</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
+
+
+        <!-- After splash, switch to main app theme -->
+        <item name="postSplashScreenTheme">@style/Theme.BuddyKartStore</item>
+    </style>
+
 
 </resources>
