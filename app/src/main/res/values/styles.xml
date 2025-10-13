@@ -6,10 +6,33 @@
         <item name="cornerSize">50%</item>
     </style>
 
-    <style name="CircleImage">
+    <style name="CircleImage" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+
+    <style name="NavigationDrawerShape">
+
+        <item name="cornerSize">0dp</item>
+    </style>
+
+
+    <style name="MyNavigationViewStyle" parent="Widget.MaterialComponents.NavigationView">
+        <item name="itemIconSize">20dp</item>
+        <item name="itemIconPadding">12dp</item>
+        <item name="itemHorizontalPadding">24dp</item>
+        <item name="itemVerticalPadding">14dp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+        <item name="shapeAppearance">@style/NoCornerShape</item>
+    </style>
+
+    <style name="NoCornerShape" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">0dp</item>
+    </style>
+
+    <!--    <style name="ToolbarTitleText">28dp</style>-->
 
 
 </resources>

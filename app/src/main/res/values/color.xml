@@ -15,6 +15,10 @@
     <color name="gray">#787878</color>
     <!-- White text/icons on Black -->
     <color name="facebookBlue">#1877F2</color>
+    <color name="backgroundGray">#DADADB</color>
+
+    <color name="active_indicator">#CCCCCC</color>
+    <color name="inactive_indicator">#CCCCCC</color>
 
 
     <color name="colorBackground">#FFFFFF</color>     <!-- White background -->
@@ -28,5 +32,25 @@
 
     <color name="colorError">#D32F2F</color>          <!-- Red for errors -->
     <color name="colorOnError">#FFFFFF</color>        <!-- White text on error -->
+    <color name="background">#F2F2F2</color>        <!-- White text on error -->
+
+
+
+
+    <color name="status_pending">#FFC107</color> <!-- Yellow -->
+    <color name="status_processing">#2196F3</color> <!-- Blue -->
+    <color name="status_shipped">#3F51B5</color> <!-- Indigo -->
+    <color name="status_completed">#4CAF50</color> <!-- Green -->
+    <color name="status_cancelled">#F44336</color> <!-- Red -->
+    <color name="status_denied">#D32F2F</color> <!-- Dark Red -->
+    <color name="status_cancelled_reversal">#FF9800</color> <!-- Orange -->
+    <color name="status_failed">#616161</color> <!-- Dark Gray -->
+    <color name="status_refunded">#009688</color> <!-- Teal -->
+    <color name="status_reversed">#FFB300</color> <!-- Amber -->
+    <color name="status_chargeback">#B71C1C</color> <!-- Deep Red -->
+    <color name="status_expired">#9E9E9E</color> <!-- Gray -->
+    <color name="status_processed">#8BC34A</color> <!-- Light Green -->
+    <color name="status_void">#424242</color> <!-- Blackish Gray -->
+
 
 </resources>

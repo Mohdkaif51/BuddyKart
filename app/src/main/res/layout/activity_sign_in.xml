@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SignIn">
+    tools:context=".ui.login.SignIn">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
@@ -21,6 +21,7 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:contentDescription="@string/banner"
             android:src="@drawable/buddycart"
             android:scaleType="centerCrop"
             android:adjustViewBounds="true" />
@@ -44,7 +45,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="57dp"
-        android:hint="Enter Username"
+        android:hint="@string/enter_email"
         app:boxBackgroundColor="@color/secondaryWhite"
         app:boxCornerRadiusBottomEnd="25dp"
         app:boxCornerRadiusBottomStart="25dp"
@@ -74,7 +75,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Enter password"
+        android:hint="@string/enter_password"
         app:boxBackgroundColor="@color/secondaryWhite"
         app:boxCornerRadiusBottomEnd="25dp"
         app:boxCornerRadiusBottomStart="25dp"
@@ -93,6 +94,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:imeOptions="actionDone"
+            app:endIconMode="password_toggle"
+
             android:inputType="textPassword"
             android:singleLine="true"
             android:textColor="@color/textBlack"
@@ -107,8 +110,8 @@
         android:background="@drawable/rectangle"
         android:backgroundTint="@color/primaryYellow"
         android:textAlignment="center"
-
-        android:text="Sign In"
+        android:text="@string/login"
+        android:textSize="12sp"
         android:textColor="@color/secondaryBlack"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@id/password_container"
@@ -116,13 +119,14 @@
         app:layout_constraintTop_toBottomOf="@id/password_container" />
 
     <TextView
+
         android:id="@+id/txt"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Forgot Password?"
+        android:text="@string/forgot_password"
         android:textAlignment="center"
-        android:textColor="@color/black"
+        android:textColor="@color/primaryYellow"
         android:textSize="12sp"
         app:layout_constraintStart_toStartOf="@+id/signinbtn"
         app:layout_constraintEnd_toEndOf="@+id/signinbtn"
@@ -143,7 +147,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Don't have an account?"
+            android:text="@string/don_t_have_an_account"
             android:textColor="@color/black"
             android:textSize="14sp" />
 
@@ -154,8 +158,8 @@
             android:layout_marginStart="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:text="Sign up"
-            android:textColor="@color/black"
+            android:text="@string/sign_up"
+            android:textColor="@color/primaryYellow"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -166,7 +170,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="OR"
+        android:text="@string/or"
         android:textAlignment="center"
         android:textColor="@color/black"
         android:textSize="12sp"
@@ -189,7 +193,9 @@
         tools:ignore="MissingConstraints">
 
         <!-- Google Circular Button -->
+
         <com.google.android.material.imageview.ShapeableImageView
+
             android:id="@+id/btn_google"
             android:layout_width="52dp"
             android:layout_height="52dp"
@@ -208,8 +214,15 @@
             app:shapeAppearanceOverlay="@style/CircleImageStyle" />
     </LinearLayout>
 
-
-
+    <ProgressBar
+        android:id="@+id/progressbar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/primaryYellow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

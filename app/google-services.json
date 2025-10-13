@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "218813571210",
+    "project_id": "buddykartstore001",
+    "storage_bucket": "buddykartstore001.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:218813571210:android:72251d0519431e37b2cd73",
+        "android_client_info": {
+          "package_name": "com.example.buddy_kart_store"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "218813571210-02nihb6uauci0070bnbsor5nb90jaof2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.buddy_kart_store",
+            "certificate_hash": "0476801d913cd03757ac6589bfff5064bcb92fdf"
+          }
+        },
+        {
+          "client_id": "218813571210-1lgj4kpggphc430f8p4taddbva29hpl3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxKF31TTzNiDJZMRPMrZI65cQ9ot2K1ls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "218813571210-1lgj4kpggphc430f8p4taddbva29hpl3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
