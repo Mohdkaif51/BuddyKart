@@ -12,10 +12,10 @@
         android:icon="@drawable/buddycart"
         android:label="@string/app_name"
         android:roundIcon="@drawable/buddycart"
-
         android:supportsRtl="true"
         android:theme="@style/Theme.BuddyKartStore"
         android:usesCleartextTraffic="true">
+
         <activity
             android:name=".ui.drawer_section.OrderDetail"
             android:exported="false" />
@@ -49,16 +49,21 @@
         <activity
             android:name=".ui.Home.Search"
             android:exported="false" /> <!-- Splash Activity (Launcher) -->
+
+
         <activity
             android:name=".ui.Home.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.MyApp.Splash">
+            android:theme="@style/Theme.MyApp.Splash"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity> <!-- Main App Screens -->
+
+
         <activity
             android:name=".ui.Home.MainActivity"
             android:exported="false"

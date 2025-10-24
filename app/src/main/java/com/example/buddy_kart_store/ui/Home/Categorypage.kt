@@ -7,9 +7,12 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.buddy_kart_store.databinding.ActivityCategorypageBinding
+import com.example.buddy_kart_store.model.repository.CartRepo
+import com.example.buddy_kart_store.model.repository.FetchWishListRepo
 import com.example.buddy_kart_store.model.retrofit_setup.login.CategoryProduct
 import com.example.buddy_kart_store.model.retrofit_setup.login.RetrofitClient
 import com.example.buddy_kart_store.model.retrofit_setup.login.categories
@@ -17,6 +20,10 @@ import com.example.buddy_kart_store.ui.drawer_section.MyWishlist
 import com.example.buddy_kart_store.ui.recyclerviews.LeftCategory
 import com.example.buddy_kart_store.ui.recyclerviews.RIghtCategoryProduct
 import com.example.buddy_kart_store.ui.recyclerviews.SubCategoryAdapter
+import com.example.buddy_kart_store.ui.viewmodel.WishListVM
+import com.example.buddy_kart_store.ui.viewmodel.fetchCartVM
+import com.example.buddy_kart_store.utils.Sharedpref
+import com.example.buddy_kart_store.utlis.GenericViewModelFactory
 import okhttp3.ResponseBody
 import org.json.JSONArray
 import org.json.JSONObject
@@ -47,6 +54,11 @@ class Categorypage : AppCompatActivity() {
     private lateinit var categoryAdapter: LeftCategory
     private lateinit var subCategoryAdapter: SubCategoryAdapter
     private lateinit var categoryProductAdapter: RIghtCategoryProduct
+
+    private lateinit var wishVM: WishListVM
+
+    private lateinit var  viewModel: fetchCartVM
+
 
     private var categoryId: Int = 0
     private var categoryName: String? = null
@@ -82,7 +94,12 @@ class Categorypage : AppCompatActivity() {
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.subCategory.adapter = subCategoryAdapter
 
-        categoryProductAdapter = RIghtCategoryProduct(categoryProducts)
+        val cartRepository = CartRepo(RetrofitClient.iInstance , this)
+        val cartFactory = GenericViewModelFactory { fetchCartVM(cartRepository) }
+        viewModel = ViewModelProvider(this, cartFactory)[fetchCartVM::class.java]
+
+
+        categoryProductAdapter = RIghtCategoryProduct(categoryProducts , viewModel)
         binding.productList.layoutManager = GridLayoutManager(this, 2)
         binding.productList.adapter = categoryProductAdapter
     }
@@ -90,12 +107,50 @@ class Categorypage : AppCompatActivity() {
     private fun setupClicks() {
         binding.backbtn.setOnClickListener { onBackPressed() }
         binding.searchbtn.setOnClickListener { startActivity(Intent(this, Search::class.java)) }
-        binding.favbtn.setOnClickListener {
+        binding.wishlist.setOnClickListener {
             startActivity(Intent(this, MyWishlist::class.java))
         }
-        binding.cartbtn.setOnClickListener {
+        binding.cartt.setOnClickListener {
             startActivity(Intent(this, CartActivity::class.java))
         }
+        viewModel.cartCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.cartCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                binding.cartCount.text = wishcount
+
+            } else {
+                binding.cartCount.visibility = View.GONE
+            }
+            val initialCartCount = Sharedpref.CartPrefs.getCartIds(this).size
+            viewModel.cartCountLiveData.postValue(initialCartCount)
+
+            binding.cart.setOnClickListener {
+                val productId = "1234" // Example product ID
+                viewModel.addProductToCart(productId, this)
+            }
+        }
+
+        val repository = FetchWishListRepo(RetrofitClient.iInstance)
+        val factory = GenericViewModelFactory { WishListVM(repository) }
+        wishVM = ViewModelProvider(this, factory)[WishListVM::class.java]
+
+        wishVM.wishCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.wishlistCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                Log.d("gettingwishcount", "onCreate: $wishcount")
+                binding.wishlistCount.text = wishcount
+
+            } else {
+                binding.wishlistCount.visibility = View.GONE
+            }
+            val initialWishCount = Sharedpref.WishlistPrefs.getWishlistIds(this).size
+            wishVM.wishCountLiveData.postValue(initialWishCount)
+
+
+        }
+
     }
 
     private fun fetchCategories(categoryId: Int) {
@@ -208,4 +263,9 @@ class Categorypage : AppCompatActivity() {
             }
         })
     }
-}
+
+    override fun onResume() {
+        super.onResume()
+        fetchCategories(categoryId)
+
+    }}

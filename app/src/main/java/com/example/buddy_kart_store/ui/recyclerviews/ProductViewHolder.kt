@@ -1,5 +1,6 @@
 package com.example.buddy_kart_store.ui.recyclerviews
 
+import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,7 +15,10 @@ class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     fun bind(products: List<FeaturedProduct>, cartVM: fetchCartVM, wishlistVM: WishListVM) {
         val recyclerView = itemView.findViewById<RecyclerView>(R.id.homeProductRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
-        recyclerView.adapter = HomeProductRecyclerView(products.toMutableList(), cartVM, wishlistVM)
+        recyclerView.adapter = HomeProductRecyclerView(
+            products.toMutableList(), cartVM, wishlistVM,
+
+        )
     }
 }
 

@@ -15,10 +15,12 @@ class FetchWishListRepo(private val apiService: apiService) {
 
     // 🔹 LiveData for wishlist
     val wishlistLiveData = MutableLiveData<List<TrendingProduct>>()
+    val wishedCountLiveData = MutableLiveData<Int>()
+
 
     fun fetchWishList(
         customerId: String,
-        onResult: (Boolean, String, List<TrendingProduct>?) -> Unit
+        onResult: (Boolean, String, List<TrendingProduct>?, Int) -> Unit
     ) {
         apiService.fetchWishList(
             route = "wbapi/wbwishlist",
@@ -26,6 +28,7 @@ class FetchWishListRepo(private val apiService: apiService) {
         ).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 try {
+                    var keyCount = 0
                     val bodyString = response.body()?.string()
                     if (!bodyString.isNullOrEmpty()) {
                         val json = JSONObject(bodyString)
@@ -41,7 +44,9 @@ class FetchWishListRepo(private val apiService: apiService) {
                             for (i in 0 until dataArray.length()) {
                                 val productObj = dataArray.getJSONObject(i)
                                 val productId = productObj.optString("product_id")
-                                val name = productObj.optString("name", "N/A").replace(Regex("[^A-Za-z\\s]"), "").trim()
+                                val name = productObj.optString("name", "N/A")
+                                    .replace(Regex("[^A-Za-z\\s]"), "")
+                                    .trim()
                                 val price = productObj.optString("price")
                                 val image = productObj.optString("thumb")
                                 val thumb = "https://hello.buddykartstore.com/image/$image"
@@ -54,28 +59,31 @@ class FetchWishListRepo(private val apiService: apiService) {
                                         imageUrl = thumb
                                     )
                                 )
+                                keyCount++
                             }
 
                             // 🔹 Update LiveData
                             wishlistLiveData.postValue(productList)
+                            wishedCountLiveData.postValue(keyCount)
 
                             Log.d("wishlist", "Final List Size: ${productList.size}")
-                            onResult(true, message, productList)
+                            onResult(true, message, productList, keyCount)
                         } else {
-                            onResult(false, message, null)
+                            onResult(false, message, null, 0)
                         }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    onResult(false, "Parsing error", null)
+                    onResult(false, "Parsing error", null, 0)
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                onResult(false, t.localizedMessage ?: "API Error", null)
+                onResult(false, t.localizedMessage ?: "API Error", null, 0)
             }
         })
     }
+
 
     fun addToWishlist(customerId: String, productId: String, onResult: (Boolean, String) -> Unit) {
         apiService.addToWishlist(route = "wbapi/wbwishlist.addProductToWishlist", customerId = customerId, productId = productId)

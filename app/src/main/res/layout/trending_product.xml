@@ -2,9 +2,10 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="4dp"
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="4dp"
     app:strokeWidth="1dp">
@@ -85,7 +86,10 @@
                     android:visibility="gone"
                     android:textColor="@color/black"
                     android:textSize="12sp" />
+
             </LinearLayout>
+
+
         </LinearLayout>
 
         <!-- Wishlist Button -->
@@ -113,6 +117,70 @@
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/productImage" />
+
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/homeAddButton"
+            android:layout_width="60dp"
+            android:layout_height="36dp"
+            android:backgroundTint="@color/primaryYellow"
+            android:text="@string/add"
+            android:textAllCaps="false"
+            android:textColor="@color/black"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:cornerRadius="16dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/priceContainer"
+            app:layout_constraintTop_toBottomOf="@+id/productName" />
+
+        <LinearLayout
+            android:id="@+id/quantityControls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rating_box_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/priceContainer"
+            app:layout_constraintTop_toBottomOf="@+id/productName">
+
+            <ImageButton
+                android:id="@+id/decreaseQty"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Decrease quantity"
+                android:src="@drawable/minus"
+                app:tint="#757575" />
+
+            <TextView
+                android:id="@+id/qtyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="1"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:textColor="#212121"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/increaseQty"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Increase quantity"
+                android:src="@drawable/add"
+                app:tint="#757575" />
+        </LinearLayout>
+
+
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

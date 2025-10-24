@@ -76,12 +76,11 @@ interface apiService {
 
         ): Call<ResponseBody>
 
-
-    //    @Headers("Accept: application/json")
-    @GET("index.php")
+    @FormUrlEncoded
+    @POST("index.php")
     fun getProductsDetail(
         @Query("route") route: String = "wbapi/wbproductapi.getproduct",
-        @Query("product_id") productId: Int
+        @Field("product_id") productId: Int
     ): Call<ResponseBody>
 
 
@@ -269,7 +268,7 @@ interface apiService {
     fun fetchCartItem(
         @Query("route") route: String = "wbapi/wbcart.cartProductListing",          // route stays in URL
         @Field("customerId") customerId: String,
-        @Field("sessionId") sessionId: String
+        @Field("session_id") sessionId: String
     ): Call<ResponseBody>
 
 
@@ -286,7 +285,36 @@ interface apiService {
     @GET("https://hello.buddykartstore.com/index.php?route=wbapi/homepageapi.gethomepage")
     fun getHome(): Call<ResponseBody>
 
+    @FormUrlEncoded
+    @POST("index.php")
+    fun deleteProduct(
+        @Query("route") route: String = "wbapi/wbcart.removecartproducts",
+        @Field("customer_id") customerId: String,
+        @Field("session_id") sessionId: String,
+        @Field("cart_id") cartid: String,
+        @Field("product_id") productId: String
+    ): Call<ResponseBody>
 
+    @FormUrlEncoded
+    @POST("index.php")
+    fun deleteCart(
+        @Query("route") route: String = "wbapi/wbcart.clearcart",
+        @Field("customer_id") customerId: String,
+        @Field("session_id") sessionId: String
+//        @Field("cart_id") cartid: String
+    ): Call<ResponseBody>
+
+
+    @FormUrlEncoded
+    @POST("index.php")
+    fun updateQuantity(
+        @Query("route") route: String = "wbapi/wbcart.updateCartQuantity",
+        @Field("customer_id") customerId: String,
+        @Field("session_id") sessionId: String,
+        @Field("cart_id") cartId: String,
+        @Field("quantity") quantity: String
+
+    ): Call<ResponseBody>
 
 }
 

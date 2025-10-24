@@ -15,10 +15,11 @@ class ImageSlider @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    private lateinit var viewPager: ViewPager2
-    private lateinit var indicatorLayout: LinearLayout
+    private var viewPager: ViewPager2? = null
+    private var indicatorLayout: LinearLayout? = null
     private var sliderController: ImageSliderController? = null
     private var sliderIndicator: ImageSliderIndicator? = null
+
     private var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
 
     init {
@@ -39,15 +40,15 @@ class ImageSlider @JvmOverloads constructor(
     fun setupSlider(images: MutableList<BannerItem>, adapter: RecyclerView.Adapter<*>? = null) {
         if (images.isEmpty()) return
 
-        viewPager.adapter = adapter ?: ImageSliderAdapter(images)
-        viewPager.offscreenPageLimit = 3
+        viewPager?.adapter = adapter ?: ImageSliderAdapter(images)
+        viewPager?.offscreenPageLimit = 3
 
         // Setup indicator
         sliderIndicator = ImageSliderIndicator(context, indicatorLayout, images.size)
         sliderIndicator?.updateIndicator(0)
 
         // Page transformer for smooth effect
-        viewPager.setPageTransformer { page, position ->
+        viewPager?.setPageTransformer { page, position ->
             val absPos = kotlin.math.abs(position)
             page.apply {
                 scaleX = 1 - (absPos * 0.05f)
@@ -57,14 +58,14 @@ class ImageSlider @JvmOverloads constructor(
         }
 
         // Remove old callback
-        pageChangeCallback?.let { viewPager.unregisterOnPageChangeCallback(it) }
+        pageChangeCallback?.let { viewPager?.unregisterOnPageChangeCallback(it) }
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 val actualPosition = position % images.size
                 sliderIndicator?.updateIndicator(actualPosition)
             }
         }
-        viewPager.registerOnPageChangeCallback(pageChangeCallback!!)
+        viewPager?.registerOnPageChangeCallback(pageChangeCallback!!)
 
         // Start auto-scroll
         sliderController?.startAutoScroll()
@@ -74,15 +75,16 @@ class ImageSlider @JvmOverloads constructor(
     fun stopAutoScroll() = sliderController?.stopAutoScroll()
     fun setAutoScrollInterval(interval: Long) = sliderController?.setAutoScrollInterval(interval)
     fun setCurrentItem(position: Int, smoothScroll: Boolean = true) =
-        viewPager.setCurrentItem(position, smoothScroll)
+        viewPager?.setCurrentItem(position, smoothScroll)
 
     fun cleanup() {
-        if (::viewPager.isInitialized) {   // ✅ Check before accessing
-            viewPager.adapter = null
+        viewPager?.let {
+            it.adapter = null
+            pageChangeCallback?.let { callback -> it.unregisterOnPageChangeCallback(callback) }
         }
-
         sliderController?.stopAutoScroll()
-        pageChangeCallback?.let { viewPager.unregisterOnPageChangeCallback(it) }
-        viewPager.adapter = null
+        sliderController = null
+        pageChangeCallback = null
+        sliderIndicator = null
     }
 }

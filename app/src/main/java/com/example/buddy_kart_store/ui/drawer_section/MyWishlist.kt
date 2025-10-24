@@ -7,12 +7,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.buddy_kart_store.databinding.ActivityMyWishlistBinding
+import com.example.buddy_kart_store.model.repository.CartRepo
 import com.example.buddy_kart_store.model.repository.FetchWishListRepo
 import com.example.buddy_kart_store.model.retrofit_setup.login.RetrofitClient
 import com.example.buddy_kart_store.model.retrofit_setup.login.TrendingProduct
 import com.example.buddy_kart_store.ui.Home.MainActivity
 import com.example.buddy_kart_store.ui.recyclerviews.WishlistRecycler
 import com.example.buddy_kart_store.ui.viewmodel.WishListVM
+import com.example.buddy_kart_store.ui.viewmodel.fetchCartVM
 import com.example.buddy_kart_store.utlis.GenericViewModelFactory
 import com.example.buddy_kart_store.utlis.SessionManager
 
@@ -21,6 +23,7 @@ class MyWishlist : AppCompatActivity() {
     private lateinit var binding: ActivityMyWishlistBinding
     private lateinit var viewModel: WishListVM
     private lateinit var adapter: WishlistRecycler
+    private lateinit var fetchCart: fetchCartVM
     private var productList: MutableList<TrendingProduct> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,21 +37,38 @@ class MyWishlist : AppCompatActivity() {
 
         val customerId = SessionManager.getCustomerId(this).toString()
 
-        adapter = WishlistRecycler(productList, object : WishlistRecycler.WishlistListener {
-            override fun addToWishlist(productId: String, position: Int, onResult: (Boolean) -> Unit) {
-                viewModel.addToWishlist(productId, customerId) { success, message ->
-                    onResult(success)
-                    if (!success) Toast.makeText(this@MyWishlist, message, Toast.LENGTH_SHORT).show()
-                }
-            }
+        val cartRepository = CartRepo(RetrofitClient.iInstance, this)
+        val cartFactory = GenericViewModelFactory { fetchCartVM(cartRepository) }
+        fetchCart = ViewModelProvider(this, cartFactory)[fetchCartVM::class.java]
 
-            override fun removeFromWishlist(productId: String, position: Int, onResult: (Boolean) -> Unit) {
-                viewModel.removeFromWishlist(productId, customerId) { success, message ->
-                    onResult(success)
-                    if (!success) Toast.makeText(this@MyWishlist, message, Toast.LENGTH_SHORT).show()
+        adapter = WishlistRecycler(
+            productList, object : WishlistRecycler.WishlistListener {
+                override fun addToWishlist(
+                    productId: String,
+                    position: Int,
+                    onResult: (Boolean) -> Unit
+                ) {
+                    viewModel.addToWishlist(productId, customerId) { success, message ->
+                        onResult(success)
+                        if (!success) Toast.makeText(this@MyWishlist, message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
                 }
-            }
-        })
+
+                override fun removeFromWishlist(
+                    productId: String,
+                    position: Int,
+                    onResult: (Boolean) -> Unit
+                ) {
+                    viewModel.removeFromWishlist(productId, customerId) { success, message ->
+                        onResult(success)
+                        if (!success) Toast.makeText(this@MyWishlist, message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            },
+            fetchCart
+        )
 
         binding.wishlistrecycler.layoutManager = GridLayoutManager(this, 2)
         binding.wishlistrecycler.adapter = adapter
@@ -59,10 +79,11 @@ class MyWishlist : AppCompatActivity() {
         }
 
         // Fetch wishlist
-        viewModel.fetchWishList(customerId) { success, message, data ->
+        viewModel.fetchWishList(customerId) { success, message, data , count ->
             if (success && data != null) viewModel.setWishlist(data)
             else Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
+
 
         binding.back.setOnClickListener { onBackPressed() }
     }

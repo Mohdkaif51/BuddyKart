@@ -48,23 +48,70 @@
             android:contentDescription="@string/search"
             android:src="@drawable/search" />
 
-        <ImageButton
-            android:id="@+id/favbtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/wishlistt"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/cart"
+            app:layout_constraintTop_toTopOf="parent">
 
-            android:background="@android:color/transparent"
-            android:src="@drawable/fav" />
+            <ImageButton
+                android:id="@+id/wishlist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/fav"
+                app:tint="@color/black" />
 
-        <ImageButton
-            android:id="@+id/cartbtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
+            <TextView
+                android:id="@+id/wishlistCount"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/badge_background"
+                android:gravity="center"
+                android:textColor="@color/primaryYellow"
+                android:textSize="10sp"
+                android:layout_margin="6dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-            android:background="@android:color/transparent"
-            android:src="@drawable/cart" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cart"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/cartt"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/cart"
+                app:tint="@color/black" />
+
+
+            <TextView
+                android:id="@+id/cartCount"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/badge_background"
+                android:clickable="false"
+                android:gravity="center"
+                android:textColor="@color/primaryYellow"
+                android:textSize="8sp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </LinearLayout>
 
     <!-- Divider under toolbar -->
@@ -81,7 +128,7 @@
         android:id="@+id/ItemCategory"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="4dp"
+        android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/verticaldivider"
         app:layout_constraintHorizontal_weight="0.25"
@@ -124,7 +171,7 @@
             android:id="@+id/productList"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:padding="8dp"
+            android:padding="4dp"
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

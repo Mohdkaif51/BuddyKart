@@ -12,5 +12,6 @@ class HomeVm(private val repo: HomeRepo) : ViewModel() {
     fun loadHome() {
         repo.fetchHomePage()
     }
+
 }
 

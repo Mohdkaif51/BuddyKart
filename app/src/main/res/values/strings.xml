@@ -56,4 +56,5 @@
     <string name="category">Category</string>
     <string name="search">search</string>
     <string name="related_image">reltaed image\n</string>
+    <string name="apply">Apply</string>
 </resources>

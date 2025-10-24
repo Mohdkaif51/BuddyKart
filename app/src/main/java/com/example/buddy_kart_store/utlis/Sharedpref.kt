@@ -67,24 +67,188 @@ class Sharedpref(context: Context) {
         prefs.edit().putStringSet(KEY_WISHLIST_IDS, ids).apply()
     }
 
-    // Remove product ID from wishlist
-    fun removeFromWishlist(productId: Int) {
-        val ids = prefs.getStringSet(KEY_WISHLIST_IDS, mutableSetOf())?.toMutableSet() ?: mutableSetOf()
-        ids.remove(productId.toString())
-        prefs.edit().putStringSet(KEY_WISHLIST_IDS, ids).apply()
+
+    // Save cart product IDs
+    object CartPrefs {
+        private const val PREFS_NAME = "cart_prefs"
+        private const val KEY_CART_IDS = "cart_ids"
+
+        // ✅ Save all cart_ids as StringSet
+        fun saveCartIds(context: Context, cartIds: Set<String>) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putStringSet(KEY_CART_IDS, cartIds).apply()
+        }
+
+        fun getCartIds(context: Context): Set<String> {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+            try {
+                prefs.getInt(KEY_CART_IDS, -1) // just try reading as Int
+                prefs.edit().remove(KEY_CART_IDS).apply()
+            } catch (e: ClassCastException) {
+            }
+
+            return prefs.getStringSet(KEY_CART_IDS, emptySet()) ?: emptySet()
+        }
+
+        fun addProductId(context: Context, cartId: String) {
+            val currentIds = getCartIds(context).toMutableSet()
+            currentIds.add(cartId)
+            saveCartIds(context, currentIds)
+        }
+
+        fun removeProductId(context: Context, cartId: String) {
+            val currentIds = getCartIds(context).toMutableSet()
+            currentIds.remove(cartId)
+            saveCartIds(context, currentIds)
+        }
+
+        fun clearCart(context: Context) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().clear().apply()
+        }
     }
 
-    // Check if product is in wishlist
-    fun isInWishlist(productId: Int): Boolean {
-        val ids = prefs.getStringSet(KEY_WISHLIST_IDS, mutableSetOf()) ?: mutableSetOf()
-        return ids.contains(productId.toString())
+    fun saveCartId(cartId: String) {
+        val existingSet =
+            prefs.getStringSet("CART_IDS", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+        existingSet.add(cartId)
+
+        prefs.edit().apply {
+            putStringSet("CART_IDS", existingSet)
+            apply()
+        }
+
+
     }
 
-    // Get all wishlist IDs
-    fun getWishlist(): Set<String> = prefs.getStringSet(KEY_WISHLIST_IDS, mutableSetOf()) ?: mutableSetOf()
-
-    // Clear wishlist (optional)
-    fun clearWishlist() {
-        prefs.edit().remove(KEY_WISHLIST_IDS).apply()
+    fun getCartId(): Set<String> {
+        return prefs.getStringSet("CART_IDS", emptySet()) ?: emptySet()
     }
+
+
+    object WishlistPrefs {
+
+        private const val PREFS_NAME = "wishlist_prefs"
+        private const val KEY_WISHLIST_IDS = "wishlist_ids"
+
+        // Save wishlist product IDs
+        fun saveWishlistIds(context: Context?, productIds: Set<String>) {
+            val prefs = context?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs?.edit()?.putStringSet(KEY_WISHLIST_IDS, productIds)?.apply()
+        }
+
+        // Get saved wishlist product IDs
+        fun getWishlistIds(context: Context): Set<String> {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getStringSet(KEY_WISHLIST_IDS, emptySet()) ?: emptySet()
+        }
+
+        // Add a single product ID to wishlist
+        fun addProductId(context: Context, productId: String) {
+            val ids = getWishlistIds(context).toMutableSet()
+            ids.add(productId)
+            saveWishlistIds(context, ids)
+        }
+
+        // Remove a single product ID from wishlist
+        fun removeProductId(context: Context, productId: String) {
+            val ids = getWishlistIds(context).toMutableSet()
+            ids.remove(productId)
+            saveWishlistIds(context, ids)
+        }
+
+        // Clear all wishlist items
+        fun clearWishlist(context: Context) {
+            saveWishlistIds(context, emptySet())
+        }
+
+        // Optional: Check if a product is already in wishlist
+        fun isInWishlist(context: Context, productId: String): Boolean {
+            return getWishlistIds(context).contains(productId)
+        }
+    }
+
+
+    object CartPref {
+        private const val PREFS_NAME = "cart_pref"
+        private const val KEY_CART_QUANTITIES = "cart_quantities"
+        private const val KEY_CART_MAPPING = "cart_mapping" // productId -> cartId
+
+
+        // ✅ Save mapping: productId -> cartId
+        fun saveCartMapping(context: Context, productId: String, cartId: String) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putString("cartId_for_$productId", cartId).apply()
+        }
+
+        // ✅ Get the specific cartId for a product
+        fun getCartIdForProduct(context: Context, productId: String): String? {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getString("cartId_for_$productId", null)
+        }
+
+        fun isInCart(context: Context, productId: String): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val cartId = prefs.getString("cartId_for_$productId", null)
+            return cartId != null
+        }
+
+
+        // ✅ Optional: clear all cart mappings
+        fun clearCart(context: Context) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val allKeys = prefs.all.keys
+            val editor = prefs.edit()
+            for (key in allKeys) {
+                if (key.startsWith("qty_") || key.startsWith("cartId_for_")) {
+                    editor.remove(key)
+                }
+            }
+            editor.apply()
+        }
+
+
+        fun saveCartQuantities(context: Context, quantities: Map<String, Int>) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+            for ((productId, qty) in quantities) {
+                editor.putInt("qty_$productId", qty)
+            }
+            editor.apply()
+        }
+
+        // Get all quantities from SharedPreferences
+        fun getCartQuantities(context: Context): Map<String, Int> {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val allEntries = prefs.all
+            val quantities = mutableMapOf<String, Int>()
+            for ((key, value) in allEntries) {
+                if (key.startsWith("qty_")) {
+                    val productId = key.removePrefix("qty_")
+                    quantities[productId] = value as? Int ?: 0
+                }
+            }
+            return quantities
+        }
+
+        //
+        fun deleteProduct(context: Context, productId: String) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+
+            // Remove quantity
+            editor.remove("qty_$productId")
+            // Remove cartId mapping
+            editor.remove("cartId_for_$productId")
+
+            editor.apply()
+        }
+
+
+    }
+
+
+
+
 }

@@ -6,7 +6,9 @@
     <ImageView
         android:id="@+id/relatedImage"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:layout_height="250dp"
+        android:layout_gravity="center_vertical"
+        android:scaleType="fitCenter"
+
         android:contentDescription="@string/related_image"/>
 </FrameLayout>

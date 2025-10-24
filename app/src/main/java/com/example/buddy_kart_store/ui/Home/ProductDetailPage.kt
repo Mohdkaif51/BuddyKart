@@ -1,25 +1,25 @@
 package com.example.buddy_kart_store.ui.Home
 
-import android.R.attr.maxLines
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.Html
 import android.text.TextUtils
 import android.util.Log
-import android.util.Log.e
 import android.view.View
-import android.widget.TextView
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
+import androidx.viewpager2.widget.ViewPager2
 import com.example.buddy_kart_store.R
 import com.example.buddy_kart_store.databinding.ActivityProductDetailPageBinding
+import com.example.buddy_kart_store.model.repository.CartRepo
 import com.example.buddy_kart_store.model.repository.FetchWishListRepo
 import com.example.buddy_kart_store.model.repository.RelatedProductRepo
 import com.example.buddy_kart_store.model.repository.ReviewRepo
@@ -29,16 +29,19 @@ import com.example.buddy_kart_store.model.retrofit_setup.login.RelatedImage
 import com.example.buddy_kart_store.model.retrofit_setup.login.RelatedProduct
 import com.example.buddy_kart_store.model.retrofit_setup.login.RetrofitClient
 import com.example.buddy_kart_store.ui.drawer_section.MyWishlist
+import com.example.buddy_kart_store.ui.recyclerviews.FullscreenImageAdapter
 import com.example.buddy_kart_store.ui.recyclerviews.ProductReviewRecycler
 import com.example.buddy_kart_store.ui.recyclerviews.RelatedImagesPagerAdapter
 import com.example.buddy_kart_store.ui.recyclerviews.RelatedProductAdapter
 import com.example.buddy_kart_store.ui.viewmodel.ReviewVM
 import com.example.buddy_kart_store.ui.viewmodel.WishListVM
+import com.example.buddy_kart_store.ui.viewmodel.fetchCartVM
 import com.example.buddy_kart_store.ui.viewmodel.relatedProoductVM
 import com.example.buddy_kart_store.utils.CartManager
 import com.example.buddy_kart_store.utils.Sharedpref
 import com.example.buddy_kart_store.utlis.GenericViewModelFactory
 import com.example.buddy_kart_store.utlis.SessionManager
+import jp.wasabeef.blurry.Blurry
 import okhttp3.ResponseBody
 import org.json.JSONArray
 import org.json.JSONObject
@@ -46,6 +49,7 @@ import org.jsoup.Jsoup
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.core.view.isVisible
 
 class ProductDetailPage : AppCompatActivity() {
 
@@ -71,13 +75,18 @@ class ProductDetailPage : AppCompatActivity() {
 
     private var isFavorite: Boolean = false
 
+    private var allImages: List<RelatedImage> = emptyList()
+
     private lateinit var viewModel: ReviewVM
     private lateinit var addViewModel: WishListVM
     private lateinit var fetchRelatedProducts: relatedProoductVM
     private lateinit var adapter: ProductReviewRecycler
+    private lateinit var cartVM: fetchCartVM
+
     private var productId: String? = null
 
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityProductDetailPageBinding.inflate(layoutInflater)
@@ -106,41 +115,80 @@ class ProductDetailPage : AppCompatActivity() {
         }
 
         // -------------------- Wishlist Button --------------------
+        // -------------------- Wishlist Button --------------------
         val repository = FetchWishListRepo(RetrofitClient.iInstance)
         val addFactory = GenericViewModelFactory { WishListVM(repository) }
         addViewModel = ViewModelProvider(this, addFactory)[WishListVM::class.java]
 
+// Get productId safely
+        productId = intent.getStringExtra(EXTRA_PRODUCT_ID) ?: ""
+        if (productId.isNullOrEmpty()) {
+            Toast.makeText(this, "No Product ID received", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+// Check wishlist state from SharedPrefs
+        isFavorite = Sharedpref.WishlistPrefs.isInWishlist(this, productId!!)
+        updateFavIcon(isFavorite)
+
         binding.favbtn.setOnClickListener {
-            val product = currentProduct ?: return@setOnClickListener
             val customerId = SessionManager.getCustomerId(this) ?: return@setOnClickListener
 
-            if (!product.favorite) {
-                addViewModel.addToWishlist(productId.toString(), customerId) { success, message ->
-                    if (success) {
-                        product.favorite = true
-                        updateFavIcon(true) // show "in wishlist" icon
-                    } else {
+            isFavorite = !isFavorite // toggle state immediately for UI feedback
+            updateFavIcon(isFavorite)
+
+            if (isFavorite) {
+                // Add product to wishlist
+                Sharedpref.WishlistPrefs.addProductId(this, productId!!)
+                addViewModel.addToWishlist(productId!!, customerId) { success, message ->
+                    if (!success) {
+                        // revert if API fails
+                        isFavorite = false
+                        Sharedpref.WishlistPrefs.removeProductId(this, productId!!)
                         updateFavIcon(false)
                     }
                     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                 }
             } else {
-                addViewModel.removeFromWishlist(productId.toString(), customerId) { success, message ->
-                    if (success) {
-                        product.favorite = false
-                        updateFavIcon(false) // show "not in wishlist" icon
-                    } else {
+                // Remove from wishlist
+                Sharedpref.WishlistPrefs.removeProductId(this, productId!!)
+                addViewModel.removeFromWishlist(productId!!, customerId) { success, message ->
+                    if (!success) {
+                        // revert if API fails
+                        isFavorite = true
+                        Sharedpref.WishlistPrefs.addProductId(this, productId!!)
                         updateFavIcon(true)
                     }
                     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
-        binding.wishlistbtn.setOnClickListener {
+
+        binding.wishlist.setOnClickListener {
             val intent = Intent(this, MyWishlist::class.java)
             intent.putExtra("fromActivity", "PDP")
             startActivity(intent)
         }
+
+        addViewModel.wishCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.wishlistCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                Log.d("gettingwishcount", "onCreate: $wishcount")
+                binding.wishlistCount.text = wishcount
+
+            } else {
+                binding.wishlistCount.visibility = View.GONE
+            }
+            val initialWishCount = Sharedpref.WishlistPrefs.getWishlistIds(this).size
+            addViewModel.wishCountLiveData.postValue(initialWishCount)
+
+
+        }
+
+// Initial update (in case data is already there)
+        val currentIds = Sharedpref.WishlistPrefs.getWishlistIds(this)
+        addViewModel.updateWishCount(currentIds)
 
         currentProduct?.let { product ->
             updateFavIcon(product.favorite)
@@ -197,6 +245,49 @@ class ProductDetailPage : AppCompatActivity() {
                 adapter.updateList(reviews)
             }
         }
+
+        val cartRepository = CartRepo(RetrofitClient.iInstance, this)
+        val cartFactory = GenericViewModelFactory { fetchCartVM(cartRepository) }
+        cartVM = ViewModelProvider(this, cartFactory)[fetchCartVM::class.java]
+
+// Can be a boolean variable in your Activity/Fragment
+        var isInCart = Sharedpref.CartPref.isInCart(this, productId.toString())
+
+        binding.addtocartbtn.apply {
+            text = if (isInCart) "Go to Cart" else "Add to Cart"
+
+            setOnClickListener {
+                if (!isInCart) {
+                    isEnabled = false
+                    text = "Adding..."
+
+                    cartVM.addToCart(
+                        customerId.toString(),
+                        SessionManager.getSessionId(this@ProductDetailPage).toString(),
+                        productId.toString()
+                    ) { success, message ->
+                        isEnabled = true
+                        if (success) {
+                            isInCart = true
+                            text = "Go to Cart"
+
+                            // save to SharedPref immediately
+                            Sharedpref.CartPref.saveCartMapping(
+                                this@ProductDetailPage, productId.toString(),  "someId"
+                            )
+
+                            Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show()
+                        } else {
+                            text = "Add to Cart"
+                            Toast.makeText(context, "Failed to add to cart", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    startActivity(Intent(context, CartActivity::class.java))
+                }
+            }
+        }
+
 
         // Submit review
         binding.submitReviewBtn.setOnClickListener {
@@ -257,6 +348,7 @@ class ProductDetailPage : AppCompatActivity() {
                 launch(this, product.productId)
             },
             wishViewModel = addViewModel,
+            viewModel = cartVM
         )
 
         binding.relatedproduct.layoutManager =
@@ -271,8 +363,28 @@ class ProductDetailPage : AppCompatActivity() {
 
 
 
-        adapterpdp = RelatedImagesPagerAdapter(emptyList())
+
+        adapterpdp = RelatedImagesPagerAdapter(allImages) { position ->
+            showImageOverlay(position)
+        }
         binding.relatedImagesViewPager.adapter = adapterpdp
+        binding.relatedImagesViewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+
+        binding.relatedImagesViewPager.registerOnPageChangeCallback(object :
+            ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                val count = binding.imageIndicator.childCount
+                for (i in 0 until count) {
+                    val dot = binding.imageIndicator.getChildAt(i) as ImageView
+                    if (i == position) {
+                        dot.setImageResource(R.drawable.dot_active)
+                    } else {
+                        dot.setImageResource(R.drawable.dot_inactive)
+                    }
+                }
+            }
+        })
+
 
         // Observe LiveData
         fetchRelatedProducts.relatedImages.observe(this) { images ->
@@ -287,11 +399,32 @@ class ProductDetailPage : AppCompatActivity() {
         }
 
 
+        binding.imageOverlay.setOnTouchListener { v, event ->
+            val viewPagerRect = Rect()
+            binding.fullscreenViewPager.getGlobalVisibleRect(viewPagerRect)
+
+            if (!viewPagerRect.contains(event.rawX.toInt(), event.rawY.toInt())) {
+                closeOverlay()
+                true
+            } else {
+                false
+            }
+        }
+
+
+
+    }
+    override fun onBackPressed() {
+        if (binding.imageOverlay.isVisible) {
+            closeOverlay()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     @SuppressLint("SetTextI18n")
     private fun fetchProductDetails(productId: Int) {
-        Log.d("gettingproduct", "fetchProductDetails: $productId")
+        Log.d("ProductDetailPage", "Fetching product details for ID: $productId")
 
         RetrofitClient.iInstance.getProductsDetail(
             route = "wbapi/wbproductapi.getproduct",
@@ -310,7 +443,7 @@ class ProductDetailPage : AppCompatActivity() {
                     val json = JSONObject(jsonString)
                     val data = json.opt("data")
 
-                    // --- Safely extract product object ---
+                    // Extract product object safely
                     val productObj: JSONObject? = when (data) {
                         is JSONObject -> data
                         is JSONArray -> (0 until data.length())
@@ -324,33 +457,22 @@ class ProductDetailPage : AppCompatActivity() {
                         return
                     }
 
-                    // --- Parse main fields ---
                     val baseUrl = "https://staging.buddykartstore.com/"
+
+                    // Product details
                     val name = productObj.optString("name", "N/A").replace(Regex("[^A-Za-z\\s]"), "").trim()
                     val price = String.format("%.2f", productObj.optDouble("price", 0.0))
                     val rating = productObj.optString("rating", "0")
                     val mainImage = productObj.optString("image", "")
-                    val fullImageUrl = if (mainImage.startsWith("http")) mainImage else "$baseUrl/image/$mainImage"
+                    val fullMainImage = if (mainImage.startsWith("http")) mainImage else "$baseUrl/image/$mainImage"
 
+                    // Parse description
                     val descriptionHtml = productObj.optString("description", "")
                     val doc = Jsoup.parse(descriptionHtml)
                     doc.select("script, style").remove()
                     val formattedText = Html.fromHtml(doc.text(), Html.FROM_HTML_MODE_LEGACY).toString().trim()
 
-                    // --- Parse image array ---
-                    val imageList = mutableListOf<RelatedImage>()
-                    val imageArray = productObj.optJSONArray("image")
-                    Log.d("gettingrelatedimaged", "onResponse: $imageArray")
-//                    if (imageArray != null) {
-//                        for (i in 0 until imageArray.length()) {
-//                            val imgObj = imageArray.getJSONObject(i)
-//                            val imageUrl = imgObj.optString("image", "")
-//                            val fullUrl = if (imageUrl.startsWith("http")) imageUrl else "$baseUrl/$imageUrl"
-//                            imageList.add(fullUrl)
-//                        }
-//                    }
-
-                    // --- Parse related products ---
+                    // Parse related products
                     val relatedArray = productObj.optJSONArray("related_products")
                     val relatedList = mutableListOf<RelatedProduct>()
                     if (relatedArray != null) {
@@ -371,48 +493,56 @@ class ProductDetailPage : AppCompatActivity() {
                         }
                     }
 
-                    // --- Update UI ---
+                    // Parse additional images
+                    val imageArray = json.optJSONArray("image") ?: JSONArray()
+                    val additionalImages = mutableListOf<RelatedImage>()
+                    for (i in 0 until imageArray.length()) {
+                        val imgObj = imageArray.getJSONObject(i)
+                        val imgUrl = imgObj.optString("image", "")
+                        val fullUrl = if (imgUrl.startsWith("http")) imgUrl else "$baseUrl/image/$imgUrl"
+                        additionalImages.add(RelatedImage(image = fullUrl, productId = productObj.optString("product_id")))
+                    }
+
+                    // Combine main + additional images
+                    allImages = mutableListOf<RelatedImage>().apply {
+                        add(RelatedImage(image = fullMainImage, productId = productObj.optString("product_id")))
+                        addAll(additionalImages)
+                    }
+
+                    // Update UI
                     binding.productname.text = name
-                    binding.actualprice.text = "$$price"
-                    binding.discountprice.text = "$$price"
+                    binding.actualprice.text = price
+                    binding.discountprice.text = price
                     binding.descText.text = formattedText
                     binding.rating.text = "$rating ★"
 
-                    Glide.with(this@ProductDetailPage)
-                        .load(fullImageUrl)
-                        .placeholder(R.drawable.download)
-                        .error(R.drawable.download)
-                        .into(binding.productImage)
+                    // Update image slider adapter
+                    adapterpdp.updateList(allImages)
+                    setupIndicators(allImages.size)
 
-                    val relatedImages = imageList.map { RelatedImage(
-                        image = it.image,
-                        productId = productObj.optString("product_id")
-                    ) }
-                    Log.d("relatedimagesss", "onResponse: $relatedImages")
-                    adapterpdp.updateList(relatedImages)
-
+                    // Update related products
                     relatedAdapter.updateList(relatedList)
 
-                    // --- Store in CartItem ---
+                    // Store current product for cart/wishlist
                     currentProduct = CartItem(
                         productId = productObj.optString("product_id"),
                         name = name,
                         price = price,
-                        imageUrl = fullImageUrl
+                        imageUrl = fullMainImage
                     )
 
-                    Log.d("ProductImages", "Fetched ${imageList.size} images")
+                    Log.d("ProductImages", "Fetched ${allImages.size} images")
                     Log.d("RelatedProducts", "Fetched ${relatedList.size} related items")
 
                 } catch (e: Exception) {
-                    e("ProductDetailError", "Parsing error: ${e.localizedMessage}")
+                    Log.e("ProductDetailError", "Parsing error: ${e.localizedMessage}")
                     Toast.makeText(this@ProductDetailPage, "Parsing error", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 Toast.makeText(this@ProductDetailPage, "API request failed", Toast.LENGTH_SHORT).show()
-                e("ProductDetailError", t.localizedMessage ?: "unknown error")
+                Log.e("ProductDetailError", t.localizedMessage ?: "unknown error")
             }
         })
     }
@@ -424,5 +554,96 @@ class ProductDetailPage : AppCompatActivity() {
             binding.favbtn.setImageResource(R.drawable.fav)
         }
     }
+    private fun setupIndicators(count: Int) {
+        val indicatorLayout = binding.imageIndicator
+        indicatorLayout.removeAllViews()
+
+        val dots = Array(count) { ImageView(this) }
+        for (i in 0 until count) {
+            dots[i] = ImageView(this).apply {
+                setImageResource(R.drawable.dot_inactive)
+
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.setMargins(4, 0, 4, 0) // spacing between dots
+                layoutParams = params
+            }
+            indicatorLayout.addView(dots[i])
+        }
+
+        // set first dot as active
+        if (dots.isNotEmpty()) {
+            dots[0].setImageResource(R.drawable.dot_active)
+
+        }
+    }
+
+    private fun showImageOverlay(startPosition: Int) {
+        // Safety check
+        if (allImages.isEmpty()) return
+
+        val overlay = binding.imageOverlay
+        val viewPager = binding.fullscreenViewPager
+        val indicatorLayout = binding.fullscreenIndicator
+
+        // Blur the background
+        Blurry.with(this).radius(15).sampling(2).onto(binding.main)
+
+        // Set up fullscreen adapter with all images
+        val adapter = FullscreenImageAdapter(allImages)
+        viewPager.adapter = adapter
+        viewPager.setCurrentItem(startPosition, false)
+
+        // Set up dot indicators
+        indicatorLayout.removeAllViews()
+        val dots = Array(allImages.size) { ImageView(this) }
+        for (i in dots.indices) {
+            dots[i] = ImageView(this).apply {
+                setImageResource(if (i == startPosition) R.drawable.dot_active else R.drawable.dot_inactive)
+                val params = LinearLayout.LayoutParams(20, 20)
+                params.marginStart = 6
+                params.marginEnd = 6
+                layoutParams = params
+            }
+            indicatorLayout.addView(dots[i])
+        }
+
+        // Update dots on page change
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                for (i in dots.indices) {
+                    dots[i].setImageResource(if (i == position) R.drawable.dot_active else R.drawable.dot_inactive)
+                }
+            }
+        })
+
+        // Animate overlay in
+        overlay.alpha = 0f
+        overlay.visibility = View.VISIBLE
+        overlay.animate().alpha(1f).setDuration(200).start()
+
+        // Dismiss overlay on click
+        overlay.setOnClickListener {
+            overlay.animate().alpha(0f).setDuration(200).withEndAction {
+                overlay.visibility = View.GONE
+                Blurry.delete(binding.main)
+            }.start()
+        }
+    }
+
+    private fun closeOverlay() {
+        binding.imageOverlay.animate().alpha(0f).setDuration(200).withEndAction {
+            binding.imageOverlay.visibility = View.GONE
+            Blurry.delete(binding.main)
+        }.start()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchProductDetails(productId!!.toInt())
+    }
+
 
 }

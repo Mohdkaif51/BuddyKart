@@ -13,12 +13,15 @@ import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.buddy_kart_store.databinding.ActivitySearchBinding
+import com.example.buddy_kart_store.model.repository.CartRepo
 import com.example.buddy_kart_store.model.repository.FetchWishListRepo
 import com.example.buddy_kart_store.model.retrofit_setup.login.RetrofitClient
 import com.example.buddy_kart_store.model.retrofit_setup.login.SearchProduct
 import com.example.buddy_kart_store.ui.drawer_section.MyWishlist
 import com.example.buddy_kart_store.ui.recyclerviews.SearchTrendingProduct
 import com.example.buddy_kart_store.ui.viewmodel.WishListVM
+import com.example.buddy_kart_store.ui.viewmodel.fetchCartVM
+import com.example.buddy_kart_store.utils.Sharedpref
 import com.example.buddy_kart_store.utlis.GenericViewModelFactory
 import okhttp3.ResponseBody
 import org.json.JSONObject
@@ -36,12 +39,25 @@ class Search : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
     private lateinit var viewModel: WishListVM
+    private lateinit var cartVM: fetchCartVM
+
     private val debounceDelay = 500L  // 500ms debounce
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
+        val cartRepository = CartRepo(RetrofitClient.iInstance, this)
+        val cartFactory = GenericViewModelFactory { fetchCartVM(cartRepository) }
+        cartVM = ViewModelProvider(this, cartFactory)[fetchCartVM::class.java]
+
+        binding.cartt.setOnClickListener {
+            startActivity(Intent(this, CartActivity::class.java))
+        }
+
+
 
 
         binding.progressbar.visibility = View.GONE
@@ -51,18 +67,56 @@ class Search : AppCompatActivity() {
         setupRecyclerView()
         setupSearchView()
         setupNavigationButtons()
-        binding.wishlistbtn.setOnClickListener {
+        binding.wishlist.setOnClickListener {
             val intent = Intent(this, MyWishlist::class.java)
             intent.putExtra("fromActivity", "PDP")
             startActivity(intent)
         }
 
 
+        cartVM.cartCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.cartCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                binding.cartCount.text = wishcount
+
+            } else {
+                binding.cartCount.visibility = View.GONE
+            }
+            val initialCartCount = Sharedpref.CartPrefs.getCartIds(this).size
+            cartVM.cartCountLiveData.postValue(initialCartCount)
+
+            binding.cart.setOnClickListener {
+                val productId = "1234" // Example product ID
+                cartVM.addProductToCart(productId, this)
+            }
+        }
+
+        viewModel.wishCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.wishlistCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                Log.d("gettingwishcount", "onCreate: $wishcount")
+                binding.wishlistCount.text = wishcount
+
+            } else {
+                binding.wishlistCount.visibility = View.GONE
+            }
+            val initialWishCount = Sharedpref.WishlistPrefs.getWishlistIds(this).size
+            viewModel.wishCountLiveData.postValue(initialWishCount)
+
+
+        }
+
 
     }
 
     private fun setupRecyclerView() {
-        adapter = SearchTrendingProduct(productList  , viewModel)
+        adapter = SearchTrendingProduct(
+            productList,
+            viewModel,
+            cartVM
+        )
         binding.trendingRecyclerView.layoutManager = GridLayoutManager(this, 2)
         binding.trendingRecyclerView.adapter = adapter
     }
@@ -125,11 +179,12 @@ class Search : AppCompatActivity() {
                                 val price = String.format("%.2f", obj.optString("price", "0").toDouble())
                                 val discount = obj.optString("discount")
                                 val image = obj.optString("image")
-
                                 val fullImageUrl =
                                     "https://hello.buddykartstore.com/image/$image"
 
                                 Log.d("gettingimggg", "onResponse: $image")
+                                Log.d("gettingproductname", "onResponse: $rawName")
+
 
                                 productList.add(
                                     SearchProduct(
@@ -171,5 +226,12 @@ class Search : AppCompatActivity() {
                 Toast.makeText(this@Search, "API Failed", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+    override fun onResume() {
+        super.onResume()
+        val query = binding.searchView.query.toString().trim()
+        if (query.isNotEmpty()) {
+            fetchSearchResults(query)
+        }
     }
 }

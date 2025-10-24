@@ -3,46 +3,60 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="180dp"
-    android:layout_height="wrap_content"
+    android:layout_height="270dp"
+    android:layout_marginStart="4dp"
     android:layout_marginTop="8dp"
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="8dp"
-    android:layout_marginStart="4dp"
     android:elevation="1dp"
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="4dp"
-    app:strokeColor="@color/secondaryWhite">
+    app:strokeColor="@color/secondaryWhite"
+    app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/HomeimageContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:backgroundTint="@color/secondaryWhite"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="8dp"
+        >
 
-        <ImageView
-            android:id="@+id/homeproductImage"
+        <!-- Product Image Container -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/imageCard"
             android:layout_width="0dp"
             android:layout_height="160dp"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
+            app:cardCornerRadius="6dp"
+            app:cardElevation="0dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Wishlist button after image so it's drawn on top -->
+            <ImageView
+                android:id="@+id/homeproductImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:contentDescription="Product image"
+                android:scaleType="fitCenter" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Wishlist button -->
         <ImageButton
             android:id="@+id/wishlist"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@android:color/transparent"
-            android:elevation="8dp"
-            android:padding="8dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/wishlist_bg"
+            android:contentDescription="Add to wishlist"
+            android:scaleType="centerInside"
             android:src="@drawable/fav"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
+            app:tint="@color/gray"
+            tools:layout_editor_absoluteX="136dp" />
 
         <!-- Product Title -->
         <TextView
@@ -53,79 +67,142 @@
             android:gravity="start"
             android:lineSpacingExtra="2dp"
             android:maxLines="2"
-            android:paddingTop="6dp"
+            android:minHeight="36dp"
+            android:paddingTop="8dp"
             android:text="@string/product_name"
             android:textColor="@color/black"
             android:textSize="13sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/homeproductImage" />
+            app:layout_constraintTop_toBottomOf="@+id/imageCard" />
 
+        <!-- Description Text -->
         <TextView
             android:id="@+id/desctxt"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
-            android:textSize="10dp"
-            app:layout_constraintEnd_toEndOf="@+id/homeproductImage"
-            app:layout_constraintStart_toStartOf="@+id/homeproductImage"
+            android:ellipsize="end"
+            android:paddingTop="2dp"
+            android:textColor="#757575"
+            android:textSize="10sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/homeproductName" />
-
 
         <!-- Price + Add Button Row -->
         <LinearLayout
             android:id="@+id/priceContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="@+id/desctxt"
-            app:layout_constraintStart_toStartOf="@+id/desctxt"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/quantityControls"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/desctxt">
 
             <!-- Discounted Price (Final Price) -->
             <TextView
                 android:id="@+id/homeproductdisPrice"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:paddingEnd="6dp"
-                android:text="product Price"
+                android:layout_weight="1"
+                android:text="₹999"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <!-- Original Price (Strikethrough) -->
-            <!--            <TextView-->
-            <!--                android:id="@+id/homeproductPrice"-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:text="₹1299"-->
-            <!--                android:textColor="@color/gray"-->
-            <!--                android:textSize="12sp"-->
-            <!--                android:paddingEnd="8dp" />-->
-
-            <!-- Flexible Spacer -->
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
             <!-- Add to Cart Button -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/homeAddButton"
-                android:layout_width="60dp"
+                android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:backgroundTint="@color/primaryYellow"
+                android:gravity="center"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="65dp"
+
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:text="@string/add"
                 android:textAllCaps="false"
                 android:textColor="@color/black"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:cornerRadius="16dp"
-                tools:ignore="SmallSp" />
+                android:visibility="gone"
+                app:cornerRadius="16dp" />
+            <!--            <androidx.appcompat.widget.AppCompatButton-->
+            <!--                android:id="@+id/goToCart"-->
+            <!--                android:layout_width="90dp"-->
+            <!--                android:layout_height="28dp"-->
+            <!--                android:background="@drawable/rating_box_bg"-->
+            <!--                android:gravity="center"-->
+            <!--                android:insetTop="0dp"-->
+            <!--                android:insetBottom="0dp"-->
+            <!--                android:paddingStart="16dp"-->
+            <!--                android:paddingEnd="16dp"-->
+            <!--                android:text="Open Cart"-->
+            <!--                android:textAllCaps="false"-->
+            <!--                android:textColor="@color/black"-->
+            <!--                android:textSize="12sp"-->
+            <!--                android:textStyle="bold"-->
+            <!--                app:cornerRadius="16dp"-->
+            <!--                android:visibility="gone"-->
+            <!--                app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                app:layout_constraintEnd_toEndOf="parent" />-->
+            <!--            buttons-->
+
 
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/quantityControls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rating_box_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf= "parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageButton
+                android:id="@+id/decreaseQty"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Decrease quantity"
+                android:src="@drawable/minus"
+                app:tint="#757575" />
+
+            <TextView
+                android:id="@+id/qtyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:text="1"
+                android:textColor="#212121"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/increaseQty"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Increase quantity"
+                android:src="@drawable/add"
+                app:tint="#757575" />
+        </LinearLayout>
+
+
+
+        <!-- Quantity Controls (Same style as Add Button) -->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

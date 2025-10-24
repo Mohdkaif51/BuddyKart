@@ -53,6 +53,9 @@ class Profile : AppCompatActivity() {
             val lastName = sharedPref.prefs.getString("LAST_NAME", "")
             val email = sharedPref.getEmail()
             val phone = sharedPref.prefs.getString("PHONE", "")
+val firstLetter = firstName?.getOrNull(0)?.toString() ?: ""
+            binding.profileText.text = firstLetter
+
 
             // Log values to check
             Log.d("ProfileData", "First Name: $firstName")
@@ -65,6 +68,10 @@ class Profile : AppCompatActivity() {
             binding.emailInput.setText(lastName)
             binding.dobInput.setText(email)
             binding.phoneInput.setText(phone)
+
+
+
+
         }
 
 

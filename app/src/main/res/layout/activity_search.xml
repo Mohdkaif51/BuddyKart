@@ -19,47 +19,108 @@
         android:paddingHorizontal="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        android:elevation="10dp">
 
-        <!-- Back Button -->
         <ImageButton
             android:id="@+id/backButton"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
             android:src="@drawable/back"
             app:tint="@android:color/black" />
 
-        <!-- Title -->
         <TextView
             android:id="@+id/titleText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="Search Products"
             android:textColor="@android:color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
-        <!-- Wishlist Button -->
 
-        <ImageButton
-            android:id="@+id/wishlistbtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/white"
-            android:contentDescription="TODO"
-            android:src="@drawable/fav" />
 
-        <!-- Cart Button -->
-        <ImageButton
-            android:id="@+id/cartButton"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/cart"
-            app:tint="@android:color/black" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/wishlistt"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/cart"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/wishlist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/fav"
+                app:tint="@color/black" />
+
+            <TextView
+                android:id="@+id/wishlistCount"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/badge_background"
+                android:gravity="center"
+                android:textColor="@color/primaryYellow"
+                android:textSize="10sp"
+                android:layout_margin="6dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cart"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/cartt"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/cart"
+                app:tint="@color/black" />
+
+
+
+            <TextView
+                android:id="@+id/cartCount"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/badge_background"
+                android:gravity="center"
+                android:clickable="false"
+                android:textColor="@color/primaryYellow"
+                android:textSize="8sp"
+                android:visibility="gone"
+                android:layout_margin="6dp"
+
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </LinearLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/background"
+        app:layout_constraintTop_toBottomOf="@id/topAppBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
     <!-- Search Container -->
     <LinearLayout
@@ -72,7 +133,9 @@
         android:paddingBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topAppBar">
+        app:layout_constraintTop_toBottomOf="@id/divider">
+
+
 
         <!-- Search Input -->
         <androidx.appcompat.widget.SearchView

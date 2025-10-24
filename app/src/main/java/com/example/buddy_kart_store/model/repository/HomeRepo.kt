@@ -98,7 +98,7 @@ class HomeRepo(private val apiService: apiService) {
                                 name,
                                 p.getString("thumb"),
                                 p.getString("description"),
-                                p.getString("price"),
+                                p.getString("tax"),
                                 p.optInt("rating", 0),
                                 p.getString("href"),
                                 p.optBoolean("favorite", false)
@@ -112,7 +112,6 @@ class HomeRepo(private val apiService: apiService) {
 
         val orderedModules = mutableListOf<HomeModule>()
 
-        // Example: Banner first, then Category, then Featured
         modules.find { it is HomeModule.Banner }?.let { orderedModules.add(it) }
         modules.find { it is HomeModule.Category }?.let { orderedModules.add(it) }
         modules.find { it is HomeModule.Products }?.let { orderedModules.add(it) }

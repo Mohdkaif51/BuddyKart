@@ -21,7 +21,6 @@ import com.example.buddy_kart_store.databinding.ActivityMainBinding
 import com.example.buddy_kart_store.model.repository.CartRepo
 import com.example.buddy_kart_store.model.repository.FetchWishListRepo
 import com.example.buddy_kart_store.model.repository.HomeRepo
-import com.example.buddy_kart_store.model.retrofit_setup.login.Banner
 import com.example.buddy_kart_store.model.retrofit_setup.login.RetrofitClient
 import com.example.buddy_kart_store.model.retrofit_setup.login.categories
 import com.example.buddy_kart_store.ui.drawer_section.AddressMain
@@ -36,8 +35,9 @@ import com.example.buddy_kart_store.ui.recyclerviews.ImageSliderController
 import com.example.buddy_kart_store.ui.viewmodel.WishListVM
 import com.example.buddy_kart_store.ui.viewmodel.fetchCartVM
 import com.example.buddy_kart_store.utils.Sharedpref
-import com.example.buddy_kart_store.utlis.BannerItem
 import com.example.buddy_kart_store.utlis.GenericViewModelFactory
+import com.example.buddy_kart_store.utlis.MyApp
+import com.example.buddy_kart_store.utlis.SessionManager
 import com.example.buddy_kart_store.viewmodel.HomeVm
 import com.google.android.material.navigation.NavigationView
 
@@ -51,13 +51,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sliderController: ImageSliderController
     private lateinit var cartVM: fetchCartVM
     private lateinit var wishlistVM: WishListVM
-
-
+    private lateinit var shareDb: Sharedpref
     private lateinit var home: HomeVm
 
     private val categoryList = mutableListOf<categories>()
-
-
     private lateinit var topSlider: ImageSlider
     private lateinit var bottomSlider: ImageSlider
 //    private lateinit var images: List<String>
@@ -69,28 +66,36 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         topSlider = ImageSlider(this)
         bottomSlider = ImageSlider(this)
 
-
-
         binding.wishlist.setOnClickListener {
+            binding.progressbar.visibility = View.VISIBLE
             val intent = Intent(this, MyWishlist::class.java)
             intent.putExtra("fromActivity", "CategoryPage")
             startActivity(intent)
+            binding.progressbar.postDelayed({
+                binding.progressbar.visibility = View.GONE
+            }, 800)
         }
 
 
 
         binding.cartt.setOnClickListener {
+            binding.progressbar.visibility = View.VISIBLE
+
             startActivity(
                 Intent(
                     this, CartActivity
                     ::class.java
                 )
             )
+            binding.progressbar.postDelayed({
+                binding.progressbar.visibility = View.GONE
+            }, 1000)
+
         }
+
         binding.navigationView.setBackgroundColor(ContextCompat.getColor(this, R.color.white))
 
         drawerLayout = binding.drawerLayout
@@ -176,7 +181,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        cartVM = fetchCartVM(CartRepo(RetrofitClient.iInstance))
+        cartVM = fetchCartVM(CartRepo(RetrofitClient.iInstance, this))
 
         val wishlistFactory =
             GenericViewModelFactory { WishListVM(FetchWishListRepo(RetrofitClient.iInstance)) }
@@ -189,19 +194,40 @@ class MainActivity : AppCompatActivity() {
         // -------------------------------
         // Setup RecyclerView with Adapter
         // -------------------------------
+        val customerId = SessionManager.getCustomerId(this) ?: ""
+        val sessionId = SessionManager.getSessionId(this) ?: ""
+
         val homeAdapter = HomeAdapter(emptyList(), cartVM, wishlistVM)
 //        homeAdapter.setItemViewCacheSize(10)
+        cartVM.fetchCart(customerId, sessionId)
+        cartVM.cartItems.observe(this) { cartList ->
+            val cartIds = cartList.map { it.cart_id }.toSet()
+            val quantities = cartList.associate { it.product_id to it.quantity }
+//
+//            Sharedpref.CartPref.saveCartId(this, cartIds)
+//            Sharedpref.CartPref.saveCartQuantities(this, quantities)
+
+        }
 
         binding.homeRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.homeRecyclerView.adapter = homeAdapter
+        binding.progressbar.visibility = View.VISIBLE
+
 
         home.homeModulesLiveData.observe(this) { modules ->
             Log.d("HOME_MODULES", "Received modules: ${modules.size}")
+//            binding.progressbar.postDelayed({
+//                binding.progressbar.visibility = View.GONE
+//            }, 1000)
 
             homeAdapter.updateList(modules) // Make sure HomeAdapter has updateList()
         }
+        binding.progressbar.postDelayed({
+            binding.progressbar.visibility = View.GONE
+        }, 600)
 
         home.loadHome()
+
 
         binding.swipeRefreshLayout.setOnRefreshListener {
 
@@ -252,8 +278,52 @@ class MainActivity : AppCompatActivity() {
 
 
         }
+        if (!MyApp.AppPrefs.isHomeApiCalled(this)) {
+            val customerId = SessionManager.getCustomerId(this) ?: ""
+            val sessionId = SessionManager.getSessionId(this) ?: ""
 
 
+            cartVM.fetchCart(customerId, sessionId)
+            MyApp.AppPrefs.setHomeApiCalled(this) // mark as called
+
+            Log.d("calledapi", "onCreate: api called")
+        }
+
+        cartVM.cartCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.cartCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                binding.cartCount.text = wishcount
+
+            } else {
+                binding.cartCount.visibility = View.GONE
+            }
+            val initialCartCount = Sharedpref.CartPrefs.getCartIds(this).size
+            cartVM.cartCountLiveData.postValue(initialCartCount)
+
+            binding.cart.setOnClickListener {
+                val productId = "1234" // Example product ID
+                cartVM.addProductToCart(productId, this)
+            }
+        }
+
+
+
+        wishlistVM.wishCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.wishlistCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                Log.d("gettingwishcount", "onCreate: $wishcount")
+                binding.wishlistCount.text = wishcount
+
+            } else {
+                binding.wishlistCount.visibility = View.GONE
+            }
+            val initialWishCount = Sharedpref.WishlistPrefs.getWishlistIds(this).size
+            wishlistVM.wishCountLiveData.postValue(initialWishCount)
+
+
+        }
     }
 
 
@@ -308,6 +378,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        home.loadHome()
         imageSlider.startAutoScroll()
         updateDrawerHeader()
     }
@@ -315,6 +386,9 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         imageSlider.cleanup()
+        bottomSlider.cleanup()
+        topSlider.cleanup()
+
     }
 
     private fun showDeleteConfirmationDialog() {
@@ -345,6 +419,10 @@ class MainActivity : AppCompatActivity() {
             val header = navigationView.getHeaderView(0)
             header.findViewById<TextView>(R.id.userEmail).text = sharesPref.getEmail()
             header.findViewById<TextView>(R.id.userName).text = sharesPref.getName()
+            val firstChar = sharesPref.getName()?.getOrNull(0)?.toString() ?: ""
+
+            header.findViewById<TextView>(R.id.profileText).text = firstChar
+
 
         }
     }

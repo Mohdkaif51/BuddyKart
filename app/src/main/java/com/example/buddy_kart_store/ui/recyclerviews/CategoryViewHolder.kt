@@ -1,8 +1,10 @@
 package com.example.buddy_kart_store.ui.recyclerviews
 
+import android.app.Activity
 import android.content.Intent
 import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,8 +21,20 @@ class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         val button = itemView.findViewById<TextView>(R.id.Viewall)
         button.setOnClickListener {
-            val Intent = Intent(itemView.context, Categorypage::class.java)
-            itemView.context.startActivity(Intent)
+            val context = itemView.context
+            if (context is Activity) {
+                val progressBar = (context as Activity).findViewById<ProgressBar>(R.id.progressbar)
+                progressBar?.visibility = View.VISIBLE
+                val Intent = Intent(itemView.context, Categorypage::class.java)
+                itemView.context.startActivity(Intent)
+                progressBar?.postDelayed({
+                    progressBar.visibility = View.GONE
+                }, 1000)
+            }
+
+
+
+
         }
     }
 }

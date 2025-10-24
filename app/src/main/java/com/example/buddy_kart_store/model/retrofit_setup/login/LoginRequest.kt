@@ -1,7 +1,6 @@
 package com.example.buddy_kart_store.model.retrofit_setup.login
 
 import android.annotation.SuppressLint
-import android.app.appsearch.StorageInfo
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
@@ -35,7 +34,7 @@ data class TrendingProduct(
     val name: String,
     val price: String,
     val imageUrl: String,
-    var isWished: Boolean = false
+    var isWished: Boolean = true
 )
 
 data class HomeProduct(
@@ -105,8 +104,16 @@ data class CartDetail(
     val image: String,
     val price: Double,
     var quantity: Int,
+    var subtotal: String,
+    var total: String
+)
+
+data class BillingAmt(
+    val subTotal: Double,
+    val tax: Double,
     val total: Double
 )
+
 
 
 //add to cart
@@ -115,7 +122,7 @@ data class CartItem(
     val name: String,
     val price: String,
     val imageUrl: String,
-    val quantity: Int = 1,
+    var quantity: Int = 1,
     var favorite: Boolean = false
 )
 
@@ -259,7 +266,8 @@ data class FeaturedProduct(
     val price: String,
     val rating: Int,
     var favorite: String,
-
+//    @Transient // Gson will ignore this field when parsing JSON
+//    var quantity:String,
     var Wished: Boolean
 )
 

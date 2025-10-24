@@ -31,7 +31,7 @@
     <style name="Theme.BuddyKartStore.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 
-    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">
+    <style name="Theme.MyApp.Splash" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Splash background color -->
         <item name="windowSplashScreenBackground">@color/white</item>
 
@@ -39,7 +39,6 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/buddykart</item>
 
         <!-- (Optional) Duration -->
-        <item name="windowSplashScreenAnimationDuration">200</item>
         <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
 
 

@@ -40,16 +40,10 @@ class TopCategoryAdapter(private val categories: MutableList<TopCategory>) :
             .into(holder.imageView)
 
 
-//        holder.itemView.setOnClickListener {
-//            val context = holder.itemView.context
-//            val intent = Intent(context, Categorypage::class.java)
-//            intent.putExtra("category_id", category.id)
-//            intent.putExtra("category_name", category.name)
-//            context.startActivity(intent)
-//            Log.d("gettingtopcate", "onBindViewHolder: ${category.id}")
-//        }
+
 
         holder.itemView.setOnClickListener {
+
             Categorypage.launch(holder.itemView.context, category.id.toInt())
 
         }

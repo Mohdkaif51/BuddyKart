@@ -7,10 +7,11 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import com.example.buddy_kart_store.R
+import androidx.core.view.isEmpty
 
 class ImageSliderIndicator(
     private val context: Context,
-    private val indicatorLayout: LinearLayout,
+    private val indicatorLayout: LinearLayout?,
     private val totalItems: Int
 ) {
     private val activeColor: Int
@@ -44,23 +45,25 @@ class ImageSliderIndicator(
     }
 
     private fun setupIndicators() {
-        indicatorLayout.removeAllViews()
+        indicatorLayout?.removeAllViews()
         for (i in 0 until totalItems) {
-            indicatorLayout.addView(createDot(i == 0))
+            indicatorLayout?.addView(createDot(i == 0))
         }
     }
 
-    fun updateIndicator(position: Int) {
-        if (position == currentPosition) return
-        if (indicatorLayout.childCount == 0 || position >= indicatorLayout.childCount) return
+    fun updateIndicator(position: Int?) {
+        val pos = position ?: return  // skip if null
+        if (pos == currentPosition) return
+        val layout = indicatorLayout ?: return   // exit if null
+        if (layout.isEmpty() || pos >= layout.childCount) return
 
         val oldDot = indicatorLayout.getChildAt(currentPosition)
-        val newDot = indicatorLayout.getChildAt(position)
+        val newDot = indicatorLayout.getChildAt(pos)
 
         oldDot?.let { animateDot(it, false) }
         newDot?.let { animateDot(it, true) }
 
-        currentPosition = position
+        currentPosition = pos
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.buddy_kart_store.ui.recyclerviews
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -7,9 +8,13 @@ import com.bumptech.glide.Glide
 import com.example.buddy_kart_store.R
 import com.example.buddy_kart_store.databinding.ItemRelatedImageBinding
 import com.example.buddy_kart_store.model.retrofit_setup.login.RelatedImage
+import kotlin.jvm.java
 
 class RelatedImagesPagerAdapter(
-    private var images: List<RelatedImage>
+    private var images: List<RelatedImage>,
+    private val onImageClick: (Int) -> Unit,
+
+
 ) : RecyclerView.Adapter<RelatedImagesPagerAdapter.ImageViewHolder>() {
 
     fun updateList(newImages: List<RelatedImage>) {
@@ -25,12 +30,20 @@ class RelatedImagesPagerAdapter(
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        holder.bind(images[position])
+        val image = images[position]
+        holder.bind(image)
+
+        holder.itemView.setOnClickListener {
+            onImageClick(position)
+        }
+
     }
 
     override fun getItemCount() = images.size
 
-    class ImageViewHolder(private val binding: ItemRelatedImageBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ImageViewHolder(private val binding: ItemRelatedImageBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
         fun bind(image: RelatedImage) {
             Glide.with(binding.root.context)
                 .load(image.image)

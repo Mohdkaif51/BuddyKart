@@ -1,94 +1,151 @@
 package com.example.buddy_kart_store.model.repository
 
+import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
+import com.example.buddy_kart_store.model.retrofit_setup.login.BillingAmt
 import com.example.buddy_kart_store.model.retrofit_setup.login.CartDetail
 import com.example.buddy_kart_store.model.retrofit_setup.login.apiService
+import com.example.buddy_kart_store.utils.Sharedpref
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
-import retrofit2.Response
 import retrofit2.Callback
+import retrofit2.Response
 
 
-class CartRepo(private val apiService: apiService) {
+class CartRepo(private val apiService: apiService, private val context: Context) {
 
 
     //    for product fetch
-    fun fetchCart(customerId: String, sessionId: String): MutableLiveData<List<CartDetail>> {
-        val liveData = MutableLiveData<List<CartDetail>>()
+    fun fetchCart(
+        customerId: String, sessionId: String
+    ): Pair<MutableLiveData<List<CartDetail>>, MutableLiveData<BillingAmt>> {
 
-        Log.d("fetchCart_debug", "customerId: $customerId")
-        Log.d("fetchCart_debug", "sessionId: $sessionId")
+        Log.d("gettingcustomerId", "fetchCart: $customerId")
+
+        val cartLiveData = MutableLiveData<List<CartDetail>>()
+        val billingLiveData = MutableLiveData<BillingAmt>()
+        val cartCountLiveData = MutableLiveData<Int>()
+        val quantitiesMap = mutableMapOf<String, Int>()
+
 
         apiService.fetchCartItem(
             route = "wbapi/wbcart.cartProductListing",
             customerId = customerId,
             sessionId = sessionId
         ).enqueue(object : Callback<ResponseBody> {
-
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 try {
-                    Log.d("fetchCart_debug", "Request: ${call.request()}")
-                    Log.d("fetchCart_debug", "Response: $response")
-
                     val responseBody = response.body()?.string() ?: "{}"
-                    Log.d("fetchCart_debug", "ResponseBody: $responseBody")
-
+                    val jsonObject = JSONObject(responseBody)
                     val cartList = mutableListOf<CartDetail>()
 
-                    val jsonObject = JSONObject(responseBody)
+                    val productsObj = jsonObject.optJSONObject("getProducts")
+                    val productIdsSet = mutableSetOf<String>() // To store all product IDs
 
-                    val productsObj = jsonObject.optJSONObject("products")
-                    Log.d("fetchCart_debug", "Responseprohect: $productsObj")
+                    val cartIdSet = mutableSetOf<String>()
+                    val quantityMap = mutableMapOf<String, Int>()
 
-
+                    var keyCount = 0
                     if (productsObj != null) {
                         val keys = productsObj.keys()
                         while (keys.hasNext()) {
                             val key = keys.next()
                             val item = productsObj.getJSONObject(key)
+                            val thumb =
+                                "https://hello.buddykartstore.com/image/${item.optString("image")}"
+
+                            val totalSub =
+                                item.optDouble("total", 0.0).toInt().toString() // remove decimals
 
                             val cartItem = CartDetail(
                                 cart_id = item.optString("cart_id", ""),
                                 product_id = item.optString("product_id", ""),
                                 name = item.optString("name", "").replace("&quot;", "\""),
-                                image = item.optString("image", ""),
-                                price = item.optDouble("price", 0.0),
+                                image = thumb,
+                                price = item.optDouble("price", 0.0).toInt()
+                                    .toDouble(), // remove decimals
                                 quantity = item.optString("quantity", "0").toIntOrNull() ?: 0,
-                                total = item.optDouble("total", 0.0)
+                                subtotal = totalSub,
+                                total = totalSub
+
                             )
                             cartList.add(cartItem)
+                            productIdsSet.add(cartItem.product_id)
+                            cartIdSet.add(cartItem.cart_id)
+                            quantityMap[cartItem.product_id] = cartItem.quantity
+
+//                           for cartId
+                            Sharedpref.CartPref.saveCartMapping(
+                                context,
+                                cartItem.product_id,
+                                cartItem.cart_id
+                            )
+
+
+
+                            keyCount++
                         }
-                    } else {
-                        Log.d("fetchCart_debug", "Products object is empty")
+                        Sharedpref.CartPref.saveCartQuantities(context, quantityMap)
+
+//                        for
+                        Log.d("DEBUG_CART_IDS", "Saved cart IDs: $cartIdSet")
+//                        to save productid
+                        Sharedpref.CartPrefs.saveCartIds(context, productIdsSet)
+                        Log.d("DEBUG_CART_IDS", "Saved cart IDs: $productIdsSet")
+//                        Sharedpref.CartPref.saveCartQuantities(
+//                            context,
+//                            quantity as Map<String, Int>
+//                        )
+
                     }
 
-                    liveData.postValue(cartList)
+                    cartLiveData.postValue(cartList)
+                    cartCountLiveData.postValue(keyCount)
+
+
+                    // Parse billing info
+                    val subTotal = jsonObject.optDouble("subTotal", 0.0).toInt().toDouble()
+                    val total = jsonObject.optDouble("total", 0.0).toInt().toDouble()
+                    val taxObject = jsonObject.optJSONObject("tax")
+                    Log.d("gettingtax", "onResponse: $taxObject")
+
+                    val tax = taxObject?.let { obj ->
+                        var sum = 0.0
+                        val keys = obj.keys()
+                        while (keys.hasNext()) {
+                            val key = keys.next()
+                            sum += obj.optDouble(key, 0.0)
+                        }
+                        sum.toInt().toDouble() // remove decimals
+                    } ?: 0.0
+
+                    billingLiveData.postValue(BillingAmt(subTotal, tax, total))
 
                 } catch (e: Exception) {
-                    Log.e("fetchCart_debug", "Parsing error", e)
-                    liveData.postValue(emptyList())
+                    cartLiveData.postValue(emptyList())
+//                billingLiveData.postValue(BillingAmt())
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Log.e("fetchCart_debug", "API call failed: ${t.message}")
-                liveData.postValue(emptyList())
+                cartLiveData.postValue(emptyList())
+//            billingLiveData.postValue(BillingAmt())
             }
         })
 
-        return liveData
+        return Pair(cartLiveData, billingLiveData)
     }
 
-
 //    for add product
+
 
     fun addToCart(
         customerId: String,
         sessionId: String,
-        productId: String
+        productId: String,
+        onResult: (Boolean, String) -> Unit
     ) {
         apiService.addToCart(
             route = "wbapi/wbcart.addtocart",
@@ -102,21 +159,27 @@ class CartRepo(private val apiService: apiService) {
                 Log.d("addToCart", "productId: $productId")
 
                 if (response.isSuccessful) {
-                    val rawResponse = response.body()?.string()
-                    Log.d("addToCart", "Response: $rawResponse")
+                    try {
+                        val bodyString = response.body()?.string() ?: "{}"
+                        Log.d("deleteProduct_debug", "Response: $bodyString")
 
-                    rawResponse?.let {
-                        try {
-                            val json = JSONObject(it)
-                            val success = json.optBoolean("success", false)
-                            val message = json.optString("message", "")
-                            Log.d("addToCart", "Success: $success, Message: $message")
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+                        val jsonObject = JSONObject(bodyString)
+                        val status = jsonObject.optBoolean("success", false)
+                        val message = jsonObject.optString("message", "Product removed")
+
+                        if (status) {
+                            onResult(true, message)
+                        } else {
+                            onResult(false, message)
                         }
+                    } catch (e: Exception) {
+                        Log.e("deleteProduct_debug", "Parsing error: ${e.message}")
+                        onResult(false, "Parsing error: ${e.message}")
                     }
                 } else {
-                    Log.e("addToCart", "HTTP error code: ${response.code()}")
+                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                    Log.e("deleteProduct_debug", "Error Response: $errorBody")
+                    onResult(false, "Failed to remove product: $errorBody")
                 }
             }
 
@@ -125,5 +188,166 @@ class CartRepo(private val apiService: apiService) {
             }
         })
     }
+
+
+//delete product
+
+    fun deleteProduct(
+        customerId: String,
+        sessionId: String,
+        productId: String,
+        cart_id: String,
+        onResult: (Boolean, String) -> Unit // ✅ callback for success or error message
+    ) {
+        apiService.deleteProduct(
+            route = "wbapi/wbcart.removecartproducts",
+            customerId = customerId,
+            sessionId = sessionId,
+            cartid = cart_id,
+            productId = productId
+        ).enqueue(object : Callback<ResponseBody> {
+
+            override fun onResponse(
+                call: Call<ResponseBody>, response: Response<ResponseBody>
+            ) {
+                if (response.isSuccessful) {
+                    try {
+                        val bodyString = response.body()?.string() ?: "{}"
+                        Log.d("deleteProduct_debug", "Response: $bodyString")
+
+
+                        val jsonObject = JSONObject(bodyString)
+                        val productId = jsonObject.optString("productId", "")
+                        val status = jsonObject.optBoolean("success", false)
+                        val message = jsonObject.optString("message", "Product removed")
+
+
+                        if (status) {
+                            onResult(true, message)
+                        } else {
+                            onResult(false, message)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("deleteProduct_debug", "Parsing error: ${e.message}")
+                        onResult(false, "Parsing error: ${e.message}")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                    Log.e("deleteProduct_debug", "Error Response: $errorBody")
+                    onResult(false, "Failed to remove product: $errorBody")
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Log.e("deleteProduct_debug", "API call failed: ${t.message}")
+                onResult(false, "Network error: ${t.message}")
+            }
+        })
+    }
+
+//delete cart
+
+    fun deleteCart(
+        customerId: String, sessionId: String, onResult: (Boolean, String) -> Unit
+    ) {
+        apiService.deleteCart(
+            route = "wbapi/wbcart.clearcart", customerId = customerId, sessionId = sessionId
+        ).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody?>, response: Response<ResponseBody?>) {
+
+                if (response.isSuccessful) {
+                    val bodyString = response.body()?.string() ?: "{}"
+
+                    try {
+                        val jsonObject = JSONObject(bodyString)
+                        val success = jsonObject.optBoolean("success", false)
+                        val message = jsonObject.optString("message", "")
+
+                        if (success) {
+                            Log.d("deleteCart", "Success: $message")
+
+
+                        } else {
+                            Log.e("deleteCart", "Error: $message")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("deleteCart", "Parsing error: ${e.message}")
+                    }
+                }
+            }
+
+            override fun onFailure(
+                p0: Call<ResponseBody?>, p1: Throwable
+            ) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    }
+
+
+//    update quantity
+
+
+    fun updateQuantity(
+        customerId: String,
+        sessionId: String,
+        cartId: String,
+        quantity: String,
+        onResult: (Boolean, String) -> Unit
+    ) {
+        Log.d("updateQuantity", "customerId: $customerId")
+        Log.d("updateQuantity", "sessionId: $sessionId")
+        Log.d("updateQuantity", "cartId: $cartId")
+        Log.d("updateQuantity", "quantity: $quantity")
+
+        apiService.updateQuantity(
+            route = "wbapi/wbcart.updateCartQuantity",
+            customerId = customerId,
+            sessionId = sessionId,
+            cartId = cartId,
+            quantity = quantity
+        ).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>, response: Response<ResponseBody>
+            ) {
+                if (response.isSuccessful) {
+                    Log.d("updateQuantity", "Response: $response")
+
+                    val bodyString = response.body()?.string() ?: "{}"
+                    Log.d("updateQuantity", "Response: $bodyString")
+
+                    try {
+
+                        val jsonObject = JSONObject(bodyString)
+
+                        val success = jsonObject.optBoolean("success", false)
+                        val message = jsonObject.optString("message", "")
+
+                        if (success) {
+                            onResult(true, message)
+                        } else {
+                            onResult(false, message)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("updateQuantity", "Parsing error: ${e.message}")
+                        onResult(false, "Parsing error: ${e.message}")
+                    }
+
+
+                }
+            }
+
+            override fun onFailure(
+                p0: Call<ResponseBody?>, p1: Throwable
+            ) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    }
+
+
+
 
 }
