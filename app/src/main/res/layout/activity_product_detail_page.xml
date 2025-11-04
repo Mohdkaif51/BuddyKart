@@ -61,7 +61,7 @@
                 android:layout_height="10dp"
                 android:background="@drawable/badge_background"
                 android:gravity="center"
-                android:textColor="@color/primaryYellow"
+                android:textColor="@color/red"
                 android:textSize="10sp"
                 android:layout_margin="6dp"
                 android:visibility="gone"
@@ -69,15 +69,39 @@
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cart"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
         <ImageButton
             android:id="@+id/cartbtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
+            android:src="@drawable/cart"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
+
+            <TextView
+                android:id="@+id/cartCount"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/badge_background"
+                android:clickable="false"
+                android:gravity="center"
+                android:textColor="@color/red"
+                android:textSize="8sp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-            android:src="@drawable/cart" />
 
 
     </LinearLayout>
@@ -154,7 +178,7 @@
                     android:layout_weight="1"
                     android:text="Product Name"
                     android:textColor="@color/black"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
 
@@ -183,11 +207,10 @@
                     android:id="@+id/discountprice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="₹499"
 
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -199,17 +222,18 @@
                     android:text="₹999"
                     android:textColor="@android:color/darker_gray"
                     android:textSize="12sp"
-                    android:visibility="gone" />
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/discount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
                     android:text="-50%"
-                    android:textColor="@android:color/holo_green_dark"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
+                    android:background="@drawable/rating_box_bg"
+                    android:padding="4dp"
+                    android:textSize="10sp"
+
+                    tools:ignore="SmallSp" />
             </LinearLayout>
 
             <!-- Description -->
@@ -217,7 +241,7 @@
                 android:id="@+id/description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:text="Description"
 
                 android:textSize="14sp"
@@ -234,7 +258,7 @@
 
                 android:text="This is a great product with amazing features..."
                 android:textColor="@android:color/darker_gray"
-                android:textSize="14sp" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/seeMoreBtn"
@@ -406,6 +430,7 @@
                 android:visibility="gone" />
             <!-- Related Products Section -->
             <TextView
+                android:id="@+id/relatedProduct"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -414,7 +439,7 @@
                 android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/relatedproduct"
+                android:id="@+id/relatedproductadapter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -480,8 +505,9 @@
             android:text="Add to Cart"
             android:textSize="12sp"
             android:textStyle="bold"
-            app:backgroundTint="@color/primaryYellow"
+            android:textColor="@color/colorOnPrimary"
             app:cornerRadius="8dp"
+            app:backgroundTint="@color/colorPrimary"
             app:icon="@drawable/cart" />
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/gotocartbtn"

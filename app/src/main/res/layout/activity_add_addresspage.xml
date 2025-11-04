@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
@@ -43,6 +44,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:scrollbars="none"
+        android:fitsSystemWindows="true"
+        android:windowSoftInputMode="adjustResize"
         android:padding="16dp">
 
         <LinearLayout
@@ -244,7 +247,7 @@
                     android:inputType="textCapWords"
                     android:maxLines="1"
                     android:padding="12dp"
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -267,7 +270,8 @@
                     android:inputType="textCapWords"
                     android:padding="14dp"
                     android:singleLine="true"
-                    android:textSize="12sp" />
+                    android:textSize="12sp"
+                    tools:ignore="LabelFor" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>
@@ -282,5 +286,5 @@
         android:background="@drawable/rectangle"
         android:backgroundTint="@color/primaryYellow"
         android:text="@string/save_address"
-        android:textColor="@color/black" />
+        android:textColor="@color/colorOnPrimary" />
 </LinearLayout>

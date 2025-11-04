@@ -49,6 +49,19 @@ class AddressMain : AppCompatActivity() {
                 startActivity(intent)
             }
         )
+        // Observe LiveData
+        viewModel.addresses.observe(this) { list ->
+            adapter.updateList(list)
+
+            if (list.isNullOrEmpty()) {
+                binding.noaddress.visibility = View.VISIBLE
+                binding.recyclerView.visibility = View.GONE
+            } else {
+                binding.noaddress.visibility = View.GONE
+                binding.recyclerView.visibility = View.VISIBLE
+            }
+        }
+
 
 
 
@@ -56,6 +69,14 @@ class AddressMain : AppCompatActivity() {
         binding.recyclerView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.adapter = adapter
+
+//        if(adapter.itemCount == 0){
+//            binding.noaddress.visibility = View.VISIBLE
+//            binding.recyclerView.visibility = View.GONE
+//        }else{
+//            binding.noaddress.visibility = View.GONE
+//            binding.recyclerView.visibility = View.VISIBLE
+//        }
 
 
         // Get customerId

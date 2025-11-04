@@ -37,7 +37,7 @@ class OrderSummeryRecycler(private var items: List<OrderItem>) :
 
         Glide.with(holder.itemView.context)
             .load(item.imageUrl)
-            .placeholder(R.drawable.ic_launcher_foreground) // optional placeholder
+            .placeholder(R.drawable.noproduct) // optional placeholder
             .into(holder.productImage)
 
         holder.itemView.setOnClickListener {

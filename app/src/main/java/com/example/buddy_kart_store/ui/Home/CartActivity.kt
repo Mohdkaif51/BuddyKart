@@ -1,12 +1,12 @@
 package com.example.buddy_kart_store.ui.Home
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.buddy_kart_store.databinding.ActivityCartBinding
@@ -56,6 +56,10 @@ class CartActivity : AppCompatActivity() {
         binding.back.setOnClickListener {
             onBackPressed()
 
+        }
+        binding.addtocartbtn.setOnClickListener {
+            val intent = Intent(this, WebViewPage::class.java)
+            startActivity(intent)
         }
 
         cartAdapter = CartRecyclerView(
@@ -127,34 +131,27 @@ class CartActivity : AppCompatActivity() {
             cartAdapter.notifyDataSetChanged()
         }
 
+
         binding.clearcart.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Clear Cart")
                 .setMessage("Are you sure you want to clear your cart?")
                 .setPositiveButton("Yes") { dialog, _ ->
 
-                    // ✅ Step 1: Disable the button temporarily to prevent double clicks
                     binding.clearcart.isEnabled = false
 
-                    // ✅ Step 2: Trigger ViewModel to delete cart items from server
                     viewModel.deleteCart(customerId, sessionid)
                     Sharedpref.CartPref.clearCart(this)
 
 
-
-                    // ✅ Step 3: Clear local storage and UI
                     Sharedpref.CartPrefs.clearCart(this)
                     cartList.clear()
                     cartAdapter.notifyDataSetChanged()
 
-                    // ✅ Step 4: Refresh home only if necessary
-                    home.loadHome()
 
-                    // ✅ Step 5: Refresh from API again only if backend affects it
-                    // Avoid redundant call if deleteCart() already refreshes LiveData
+
                     viewModel.fetchCart(customerId, sessionid)
 
-                    // ✅ Step 6: Re-enable after short delay or API callback
                     binding.clearcart.postDelayed({ binding.clearcart.isEnabled = true }, 1000)
 
                     dialog.dismiss()

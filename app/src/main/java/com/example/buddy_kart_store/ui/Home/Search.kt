@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.buddy_kart_store.databinding.ActivitySearchBinding
 import com.example.buddy_kart_store.model.repository.CartRepo
@@ -23,6 +24,10 @@ import com.example.buddy_kart_store.ui.viewmodel.WishListVM
 import com.example.buddy_kart_store.ui.viewmodel.fetchCartVM
 import com.example.buddy_kart_store.utils.Sharedpref
 import com.example.buddy_kart_store.utlis.GenericViewModelFactory
+import com.example.buddy_kart_store.utlis.SessionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
@@ -107,6 +112,8 @@ class Search : AppCompatActivity() {
 
 
         }
+        val sessionid = SessionManager.getSessionId(context = this).toString()
+        Log.d("sessionid", sessionid)
 
 
     }
@@ -151,25 +158,30 @@ class Search : AppCompatActivity() {
         binding.backButton.setOnClickListener { onBackPressed() }
     }
 
+    @SuppressLint("SuspiciousIndentation")
     private fun fetchSearchResults(query: String) {
         binding.progressbar.visibility = View.VISIBLE
 
-        RetrofitClient.iInstance.searchProducts(
-            route = "wbapi/searchquery.searchproduct",
-            search = query
-        ).enqueue(object : Callback<ResponseBody> {
-            @SuppressLint("NotifyDataSetChanged")
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                binding.progressbar.visibility = View.GONE
-                if (response.isSuccessful && response.body() != null) {
-                    val rawResponse = response.body()!!.string()
-                    Log.d("API_SEARCH", "onResponse: $rawResponse")
-                    try {
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val response = RetrofitClient.iInstance.searchProducts(
+                        route = "wbapi/searchquery.searchproduct",
+                        search = query
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        binding.progressbar.visibility = View.GONE
+                    }
+
+                    if (response.isSuccessful && response.body() != null) {
+                        val rawResponse = response.body()!!.string()
+                        Log.d("API_SEARCH", "onResponse: $rawResponse")
+
                         val json = JSONObject(rawResponse)
                         if (json.optString("success") == "true") {
                             val dataArray = json.getJSONArray("data")
                             productList.clear()
-
 
                             for (i in 0 until dataArray.length()) {
                                 val obj = dataArray.getJSONObject(i)
@@ -179,12 +191,17 @@ class Search : AppCompatActivity() {
                                 val price = String.format("%.2f", obj.optString("price", "0").toDouble())
                                 val discount = obj.optString("discount")
                                 val image = obj.optString("image")
+                                val baseUrl = "https://hellobuddy.jkopticals.com/image/"
+
+// Decode HTML entities (&amp; -> &)
+                                val cleanPath = image
+                                    .replace("&amp;", "&")
+                                    .replace(" ", "%20") // Encode spaces for safety
+
                                 val fullImageUrl =
-                                    "https://hello.buddykartstore.com/image/$image"
+                                    if (cleanPath.startsWith("http")) cleanPath else baseUrl + cleanPath
 
-                                Log.d("gettingimggg", "onResponse: $image")
-                                Log.d("gettingproductname", "onResponse: $rawName")
-
+                                val special = obj.getString("special")
 
                                 productList.add(
                                     SearchProduct(
@@ -193,39 +210,46 @@ class Search : AppCompatActivity() {
                                         imageUrl = fullImageUrl,
                                         price = price,
                                         rating = discount,
-                                        favorite = false
+                                        favorite = false,
+                                        special = special
                                     )
                                 )
                             }
 
-                            if (productList.isEmpty()) {
-                                binding.noProductText.visibility = View.VISIBLE
-                                binding.trendingRecyclerView.visibility = View.GONE
-                            } else {
-                                binding.noProductText.visibility = View.GONE
-                                binding.trendingRecyclerView.visibility = View.VISIBLE
-                                adapter.notifyDataSetChanged()
+                            withContext(Dispatchers.Main) {
+                                if (productList.isEmpty()) {
+                                    binding.noProductText.visibility = View.VISIBLE
+                                    binding.trendingRecyclerView.visibility = View.GONE
+                                } else {
+                                    binding.noProductText.visibility = View.GONE
+                                    binding.trendingRecyclerView.visibility = View.VISIBLE
+                                    adapter.notifyDataSetChanged()
+                                }
                             }
 
                         } else {
-                            productList.clear()
-                            adapter.notifyDataSetChanged()
-                            binding.noProductText.visibility = View.VISIBLE
-                            binding.trendingRecyclerView.visibility = View.GONE
+                            withContext(Dispatchers.Main) {
+                                productList.clear()
+                                adapter.notifyDataSetChanged()
+                                binding.noProductText.visibility = View.VISIBLE
+                                binding.trendingRecyclerView.visibility = View.GONE
+                            }
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        Toast.makeText(this@Search, "Parsing Error", Toast.LENGTH_SHORT).show()
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@Search, "Server error", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("API_ERROR", e.message.toString())
+                    withContext(Dispatchers.Main) {
+                        binding.progressbar.visibility = View.GONE
+                        Toast.makeText(this@Search, "Network error", Toast.LENGTH_SHORT).show()
                     }
                 }
-            }
 
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                binding.progressbar.visibility = View.GONE
-                Log.e("API_ERROR", t.message.toString())
-                Toast.makeText(this@Search, "API Failed", Toast.LENGTH_SHORT).show()
-            }
-        })
+        }
+
     }
     override fun onResume() {
         super.onResume()

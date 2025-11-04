@@ -11,24 +11,9 @@
         android:id="@+id/imageContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:padding="4dp">
 
-        <!-- Discount badge -->
-        <TextView
-            android:id="@+id/discountBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@android:color/holo_orange_light"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="2dp"
-            android:text="-20% OFF"
-            android:visibility="gone"
-            android:textColor="@android:color/black"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:visibility="visible" />
+
 
         <!-- Product image -->
         <ImageView
@@ -36,11 +21,10 @@
             android:layout_width="0dp"
             android:layout_height="120dp"
             android:scaleType="fitCenter"
+            app:layout_constraintBottom_toTopOf="@id/productName"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/discountBadge"
-            app:layout_constraintBottom_toTopOf="@id/productName"
-           />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Product name -->
         <TextView
@@ -48,7 +32,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:maxLines="2"
+            android:maxLines="1"
             android:paddingTop="6dp"
             android:text="Casio Men's A158WA-1DF"
             android:textColor="@color/black"
@@ -66,6 +50,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingTop="4dp"
+            android:paddingStart="4dp"
             android:layout_marginBottom="4dp"
             app:layout_constraintTop_toBottomOf="@id/productName"
             app:layout_constraintStart_toStartOf="parent"
@@ -86,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:text="₹1,499"
-                android:textSize="12sp"
+                android:textSize="10sp"
                 android:textColor="#757575"
                 />
         </LinearLayout>
@@ -96,14 +81,13 @@
             android:id="@+id/homeAddButton"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:backgroundTint="@color/primaryYellow"
+            android:backgroundTint="@color/colorPrimary"
             android:text="@string/add"
-
             android:textAllCaps="false"
-            android:textColor="@color/black"
+            android:textColor="@color/colorOnPrimary"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:visibility="gone"
+            android:visibility="visible"
             app:cornerRadius="4dp"
             android:layout_marginTop="6dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -122,7 +106,7 @@
             android:orientation="horizontal"
             android:padding="4dp"
             android:layout_marginTop="8dp"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -162,4 +146,19 @@
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/discountBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:background="@drawable/bg_discount_badge"
+        android:text="-20% OFF"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 </com.google.android.material.card.MaterialCardView>

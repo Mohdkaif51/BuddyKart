@@ -73,7 +73,7 @@ class RelatedProductAdapter(
 
         Glide.with(holder.itemView.context)
             .load(product.image)
-            .placeholder(R.drawable.ic_placeholder) // add placeholder
+            .placeholder(R.drawable.noproduct) // add placeholder
             .into(holder.productImage)
 
 

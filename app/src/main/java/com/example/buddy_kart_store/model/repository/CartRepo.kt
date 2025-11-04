@@ -22,7 +22,9 @@ class CartRepo(private val apiService: apiService, private val context: Context)
         customerId: String, sessionId: String
     ): Pair<MutableLiveData<List<CartDetail>>, MutableLiveData<BillingAmt>> {
 
+
         Log.d("gettingcustomerId", "fetchCart: $customerId")
+        Log.d("gettingcustomerId", "fetchCart: $sessionId")
 
         val cartLiveData = MutableLiveData<List<CartDetail>>()
         val billingLiveData = MutableLiveData<BillingAmt>()
@@ -53,8 +55,21 @@ class CartRepo(private val apiService: apiService, private val context: Context)
                         while (keys.hasNext()) {
                             val key = keys.next()
                             val item = productsObj.getJSONObject(key)
-                            val thumb =
-                                "https://hello.buddykartstore.com/image/${item.optString("image")}"
+                            val rawImage = item.optString("image")
+                            val baseUrl = "https://hellobuddy.jkopticals.com/image/"
+
+                            val decodedImage = rawImage.replace("&amp;", "&")
+
+                            val encodedImage = decodedImage.replace(" ", "%20")
+
+                            val thumb = if (encodedImage.startsWith("http", ignoreCase = true)) {
+                                encodedImage
+                            } else {
+                                baseUrl + encodedImage
+                            }
+
+                            Log.d("gettingimage", "✅ Final image URL: $thumb")
+
 
                             val totalSub =
                                 item.optDouble("total", 0.0).toInt().toString() // remove decimals
@@ -62,7 +77,7 @@ class CartRepo(private val apiService: apiService, private val context: Context)
                             val cartItem = CartDetail(
                                 cart_id = item.optString("cart_id", ""),
                                 product_id = item.optString("product_id", ""),
-                                name = item.optString("name", "").replace("&quot;", "\""),
+                                name = item.optString("name", "").replace(Regex("[^A-Za-z0-9\\s]"), "").trim(),
                                 image = thumb,
                                 price = item.optDouble("price", 0.0).toInt()
                                     .toDouble(), // remove decimals

@@ -14,9 +14,12 @@ class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val viewPager: ViewPager2 = itemView.findViewById(R.id.viewPager)
     private val indicatorLayout: LinearLayout = itemView.findViewById(R.id.dotIndicatorLayout)
     private val imageSlider = ImageSlider(itemView.context)
-    private var adapter: ImageSliderAdapter? = null
+    private val adapter = ImageSliderAdapter(
+        mutableListOf(),
+        viewPager
+    )
 
-    fun bind(banners: List<BannerItem>) {
+    fun bind(banners:  MutableList<BannerItem>) {
         if (banners.isEmpty()) return
 
         imageSlider.initialize(viewPager, indicatorLayout)
@@ -27,13 +30,13 @@ class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         }
 
         if (adapter == null) {
-            adapter = ImageSliderAdapter(sanitizedBanners.toMutableList())
+            adapter.updateImages(banners)
             viewPager.adapter = adapter
         } else {
             adapter?.updateImages(sanitizedBanners.toMutableList())
         }
 
-        imageSlider.setupSlider(sanitizedBanners.toMutableList())
+        imageSlider.setupSlider(banners, adapter)
     }
 
     // Helper function to fix duplicated URLs

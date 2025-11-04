@@ -2,6 +2,7 @@ package com.example.buddy_kart_store.ui.recyclerviews
 
 import android.R.id.message
 import android.annotation.SuppressLint
+import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.util.Log
 import android.view.LayoutInflater
@@ -38,7 +39,8 @@ class SearchTrendingProduct(
         val image: ImageView = itemView.findViewById(R.id.productImage)
         var name: TextView = itemView.findViewById(R.id.productName)
         val price: TextView = itemView.findViewById(R.id.productPrice)
-        val ratingContainer: LinearLayout = itemView.findViewById(R.id.ratingContainer)
+        val badge: TextView = itemView.findViewById(R.id.discountBadge)
+        val actual: TextView = itemView.findViewById(R.id.productActualPrice)
         val button: AppCompatButton = itemView.findViewById(R.id.homeAddButton)
         val quantityControls: View = itemView.findViewById(R.id.quantityControls)
         val decreaseQty: ImageButton = itemView.findViewById(R.id.decreaseQty)
@@ -68,9 +70,28 @@ class SearchTrendingProduct(
 
             }
         }
+        holder.name.text = product.name
 
-        holder.name = holder.name.apply { text = product.name }
-        holder.price.text = "₹${product.price}"
+
+        val specialValue = product.special.toDoubleOrNull() ?: 0.0
+        val actualValue = product.price.toDoubleOrNull() ?: 0.0
+
+        val disc = (actualValue - specialValue) / actualValue * 100
+        holder.badge.text = "-${String.format("%.0f", disc)}% OFF"
+
+        if (specialValue == 0.0) {
+            // 🟢 No discount — show only actual price
+            holder.price.text = "₹${String.format("%.2f", actualValue)}"
+            holder.actual.visibility = View.GONE
+            holder.price.paintFlags = holder.price.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+        } else {
+            // 🟢 Discount available — show both prices
+            holder.price.text = "₹${String.format("%.2f", specialValue)}"
+            holder.actual.text = "₹${String.format("%.2f", actualValue)}"
+            holder.actual.paintFlags = holder.actual.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            holder.actual.visibility = View.VISIBLE
+        }
+
 
 
         // Inside onBindViewHolder
@@ -225,8 +246,8 @@ class SearchTrendingProduct(
         // --- Load product image ---
         Glide.with(context)
             .load(product.imageUrl)
-            .placeholder(R.drawable.download)
-            .error(R.drawable.download)
+            .placeholder(R.drawable.noproduct)
+            .error(R.drawable.noproduct)
             .into(holder.image)
     }
 

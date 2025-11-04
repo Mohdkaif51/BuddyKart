@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:text="View All"
-            android:textColor="@color/primaryYellow"
+            android:textColor="@color/colorPrimary"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>

@@ -1,6 +1,7 @@
 package com.example.buddy_kart_store.ui.recyclerviews
 
 import android.annotation.SuppressLint
+import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.view.LayoutInflater
 import android.view.View
@@ -34,6 +35,7 @@ class WishlistRecycler(
         val productImage: ImageView = itemView.findViewById(R.id.productImage)
         val productName: TextView = itemView.findViewById(R.id.productName)
         val productPrice: TextView = itemView.findViewById(R.id.productPrice)
+        val productActualPrice: TextView = itemView.findViewById(R.id.productActualPrice)
         val discount: TextView = itemView.findViewById(R.id.discountBadge)
         val wishlist: ImageView = itemView.findViewById(R.id.btnWishlist)
         val button: AppCompatButton = itemView.findViewById(R.id.homeAddButton)
@@ -50,10 +52,39 @@ class WishlistRecycler(
         val product = productList[position]
         val context = holder.itemView.context
 
-        // Product info
+//
         holder.productName.text = product.name
         holder.productPrice.text = product.price
-        holder.discount.visibility = View.GONE
+//        holder.productActualPrice.text = product.actualPrice
+        holder.productActualPrice.paintFlags = holder.productPrice.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+
+
+
+        val price = product.price.toCleanDouble()
+        val actualPrice = product.actualPrice.toCleanDouble()
+
+        if (actualPrice == 0.0 || price == 0.0 || price >= actualPrice) {
+            holder.discount.visibility = View.GONE
+        } else {
+            val discountPercent = ((actualPrice - price) / actualPrice) * 100
+            val formattedDiscount = "-${String.format("%.0f%% OFF", discountPercent)}"
+            holder.discount.visibility = View.VISIBLE
+            holder.discount.text = formattedDiscount
+        }
+
+        if (price == 0.0) {
+            holder.productPrice.text = "₹${String.format("%.2f", actualPrice)}"
+            holder.productActualPrice.text = ""
+        } else {
+            holder.productPrice.text = "₹${String.format("%.2f", price)}"
+            holder.productActualPrice.text = "₹${String.format("%.2f", actualPrice)}"
+            holder.productActualPrice.paintFlags = holder.productPrice.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        }
+
+
+
+
+
 
         // Function to update wishlist icon
         fun updateWishlistIcon(isFavorite: Boolean) {
@@ -131,11 +162,16 @@ class WishlistRecycler(
             }
         }
 
+        val isInCart = Sharedpref.CartPref.isInCart(context, product.product_id)
+        if (isInCart) {
+            holder.button.visibility = View.GONE
+        }
+
         // Load image
         Glide.with(context)
             .load(product.imageUrl)
-            .placeholder(R.drawable.download)
-            .error(R.drawable.download)
+            .placeholder(R.drawable.noproduct)
+            .error(R.drawable.noproduct)
             .into(holder.productImage)
     }
 
@@ -145,6 +181,9 @@ class WishlistRecycler(
         productList.clear()
         productList.addAll(newList)
         notifyDataSetChanged()
+    }
+    fun String.toCleanDouble(): Double {
+        return this.replace("[^0-9.]".toRegex(), "").toDoubleOrNull() ?: 0.0
     }
 }
 

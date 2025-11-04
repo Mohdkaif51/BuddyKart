@@ -198,20 +198,19 @@ class MainActivity : AppCompatActivity() {
         val sessionId = SessionManager.getSessionId(this) ?: ""
 
         val homeAdapter = HomeAdapter(emptyList(), cartVM, wishlistVM)
-//        homeAdapter.setItemViewCacheSize(10)
         cartVM.fetchCart(customerId, sessionId)
         cartVM.cartItems.observe(this) { cartList ->
             val cartIds = cartList.map { it.cart_id }.toSet()
             val quantities = cartList.associate { it.product_id to it.quantity }
 //
-//            Sharedpref.CartPref.saveCartId(this, cartIds)
-//            Sharedpref.CartPref.saveCartQuantities(this, quantities)
+
 
         }
 
         binding.homeRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.homeRecyclerView.adapter = homeAdapter
         binding.progressbar.visibility = View.VISIBLE
+        homeAdapter
 
 
         home.homeModulesLiveData.observe(this) { modules ->
@@ -313,7 +312,6 @@ class MainActivity : AppCompatActivity() {
             if (count > 0) {
                 binding.wishlistCount.visibility = View.VISIBLE
                 val wishcount = count.toString()
-                Log.d("gettingwishcount", "onCreate: $wishcount")
                 binding.wishlistCount.text = wishcount
 
             } else {

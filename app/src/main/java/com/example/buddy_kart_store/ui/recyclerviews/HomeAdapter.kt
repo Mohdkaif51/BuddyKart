@@ -1,5 +1,6 @@
 package com.example.buddy_kart_store.ui.recyclerviews
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +21,14 @@ class HomeAdapter(
         private const val TYPE_CATEGORY = 1
         private const val TYPE_PRODUCTS = 2
     }
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
 
     override fun getItemViewType(position: Int): Int {
         return when (modules[position]) {
@@ -28,17 +37,28 @@ class HomeAdapter(
             is HomeModule.Products -> TYPE_PRODUCTS
         }
     }
+    private var sharedPool = RecyclerView.RecycledViewPool()
+    private lateinit var BannarAdapter : ImageSliderAdapter
+    private lateinit var CategoryAdapter : TopCategoryAdapter
+    private lateinit var productAdapter :  HomeProductRecyclerView
+
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             TYPE_BANNER -> BannerViewHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.item_banner_slider, parent, false)
+                LayoutInflater.from(parent.context).inflate(R.layout.item_banner_slider, parent, false),
+
+
             )
             TYPE_CATEGORY -> CategoryViewHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.item_category_list, parent, false)
+                LayoutInflater.from(parent.context).inflate(R.layout.item_category_list, parent, false),
+                sharedPool
             )
             else -> ProductViewHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.item_product_list, parent, false)
+                LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_product_list, parent, false),
+                sharedPool
             )
         }
     }
@@ -54,6 +74,7 @@ class HomeAdapter(
 
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updateList(newModules: List<HomeModule>) {
         modules = newModules
         notifyDataSetChanged()

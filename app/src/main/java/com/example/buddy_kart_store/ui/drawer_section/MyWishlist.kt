@@ -2,6 +2,7 @@ package com.example.buddy_kart_store.ui.drawer_section
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -73,10 +74,27 @@ class MyWishlist : AppCompatActivity() {
         binding.wishlistrecycler.layoutManager = GridLayoutManager(this, 2)
         binding.wishlistrecycler.adapter = adapter
 
+        if(adapter.itemCount == 0) binding.noaddress.visibility = View.VISIBLE
+        else binding.noaddress.visibility = View.GONE
+
         // Observe LiveData
         viewModel.wishlist.observe(this) { data ->
-            if (data != null) adapter.updateData(data.toMutableList())
+            if (data != null) {
+                adapter.updateData(data.toMutableList())
+
+                if (data.isEmpty()) {
+                    binding.noaddress.visibility = View.VISIBLE
+                    binding.wishlistrecycler.visibility = View.GONE
+                } else {
+                    binding.noaddress.visibility = View.GONE
+                    binding.wishlistrecycler.visibility = View.VISIBLE
+                }
+            } else {
+                binding.noaddress.visibility = View.VISIBLE
+                binding.wishlistrecycler.visibility = View.GONE
+            }
         }
+
 
         // Fetch wishlist
         viewModel.fetchWishList(customerId) { success, message, data , count ->

@@ -103,60 +103,55 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/desctxt">
 
-            <!-- Discounted Price (Final Price) -->
-            <TextView
-                android:id="@+id/homeproductdisPrice"
+            <!-- Price container (Discount + Actual price) -->
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="₹999"
-                android:textColor="@color/black"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
+
+                <!-- Discounted Price (Final) -->
+                <TextView
+                    android:id="@+id/homeproductdisPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₹999"
+                    android:textColor="@color/black"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <!-- Actual Price (Strikethrough) -->
+                <TextView
+                    android:id="@+id/homeproductdPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₹1299"
+                    android:textColor="@color/gray"
+                    android:textSize="11sp"
+
+                    android:textStyle="normal" />
+            </LinearLayout>
 
             <!-- Add to Cart Button -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/homeAddButton"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
-                android:backgroundTint="@color/primaryYellow"
+                android:backgroundTint="@color/colorPrimary"
+                android:textColor="@color/colorOnPrimary"
                 android:gravity="center"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:minWidth="65dp"
-
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:text="@string/add"
                 android:textAllCaps="false"
-                android:textColor="@color/black"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:visibility="gone"
                 app:cornerRadius="16dp" />
-            <!--            <androidx.appcompat.widget.AppCompatButton-->
-            <!--                android:id="@+id/goToCart"-->
-            <!--                android:layout_width="90dp"-->
-            <!--                android:layout_height="28dp"-->
-            <!--                android:background="@drawable/rating_box_bg"-->
-            <!--                android:gravity="center"-->
-            <!--                android:insetTop="0dp"-->
-            <!--                android:insetBottom="0dp"-->
-            <!--                android:paddingStart="16dp"-->
-            <!--                android:paddingEnd="16dp"-->
-            <!--                android:text="Open Cart"-->
-            <!--                android:textAllCaps="false"-->
-            <!--                android:textColor="@color/black"-->
-            <!--                android:textSize="12sp"-->
-            <!--                android:textStyle="bold"-->
-            <!--                app:cornerRadius="16dp"-->
-            <!--                android:visibility="gone"-->
-            <!--                app:layout_constraintBottom_toBottomOf="parent"-->
-            <!--                app:layout_constraintEnd_toEndOf="parent" />-->
-            <!--            buttons-->
-
 
         </LinearLayout>
+
+
         <LinearLayout
             android:id="@+id/quantityControls"
             android:layout_width="wrap_content"
@@ -165,7 +160,7 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="4dp"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf= "parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -200,6 +195,18 @@
                 app:tint="#757575" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/discountBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_discount_badge"
+            android:gravity="center"
+            android:text="20% OFF"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
         <!-- Quantity Controls (Same style as Add Button) -->

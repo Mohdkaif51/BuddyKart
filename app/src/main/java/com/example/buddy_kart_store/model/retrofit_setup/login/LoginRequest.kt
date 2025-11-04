@@ -34,7 +34,8 @@ data class TrendingProduct(
     val name: String,
     val price: String,
     val imageUrl: String,
-    var isWished: Boolean = true
+    var isWished: Boolean = true,
+    var actualPrice: String
 )
 
 data class HomeProduct(
@@ -88,7 +89,8 @@ data class SearchProduct(
     var imageUrl: String,
     var price: String,
     var rating: String,
-    var favorite: Boolean
+    var favorite: Boolean,
+    var special : String
 
 
 )
@@ -266,8 +268,7 @@ data class FeaturedProduct(
     val price: String,
     val rating: Int,
     var favorite: String,
-//    @Transient // Gson will ignore this field when parsing JSON
-//    var quantity:String,
-    var Wished: Boolean
+    var Wished: Boolean,
+    var actualPrice: Double
 )
 

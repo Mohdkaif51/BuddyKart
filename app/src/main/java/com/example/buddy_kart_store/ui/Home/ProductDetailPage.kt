@@ -113,8 +113,11 @@ class ProductDetailPage : AppCompatActivity() {
             }
             isExpanded = !isExpanded
         }
+        val cartRepository = CartRepo(RetrofitClient.iInstance, this)
+        val cartFactory = GenericViewModelFactory { fetchCartVM(cartRepository) }
+        cartVM = ViewModelProvider(this, cartFactory)[fetchCartVM::class.java]
 
-        // -------------------- Wishlist Button --------------------
+
         // -------------------- Wishlist Button --------------------
         val repository = FetchWishListRepo(RetrofitClient.iInstance)
         val addFactory = GenericViewModelFactory { WishListVM(repository) }
@@ -197,6 +200,24 @@ class ProductDetailPage : AppCompatActivity() {
         binding.cartbtn.setOnClickListener {
             startActivity(Intent(this, CartActivity::class.java))
         }
+        cartVM.cartCountLiveData.observe(this) { count ->
+            if (count > 0) {
+                binding.cartCount.visibility = View.VISIBLE
+                val wishcount = count.toString()
+                binding.cartCount.text = wishcount
+
+            } else {
+                binding.cartCount.visibility = View.GONE
+            }
+            val initialCartCount = Sharedpref.CartPrefs.getCartIds(this).size
+            cartVM.cartCountLiveData.postValue(initialCartCount)
+
+            binding.cart.setOnClickListener {
+                val productId = "1234" // Example product ID
+                cartVM.addProductToCart(productId, this)
+            }
+        }
+
 
         // -------------------- Price Strike-through --------------------
         binding.actualprice.paintFlags =
@@ -246,9 +267,7 @@ class ProductDetailPage : AppCompatActivity() {
             }
         }
 
-        val cartRepository = CartRepo(RetrofitClient.iInstance, this)
-        val cartFactory = GenericViewModelFactory { fetchCartVM(cartRepository) }
-        cartVM = ViewModelProvider(this, cartFactory)[fetchCartVM::class.java]
+
 
 // Can be a boolean variable in your Activity/Fragment
         var isInCart = Sharedpref.CartPref.isInCart(this, productId.toString())
@@ -350,10 +369,15 @@ class ProductDetailPage : AppCompatActivity() {
             wishViewModel = addViewModel,
             viewModel = cartVM
         )
+        if(relatedAdapter.itemCount==0){
+            binding.noProductText.visibility = View.VISIBLE
+            binding.relatedproductadapter.visibility = View.GONE
+            binding.relatedProduct.visibility = View.GONE
+        }
 
-        binding.relatedproduct.layoutManager =
+        binding.relatedproductadapter.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        binding.relatedproduct.adapter = relatedAdapter
+        binding.relatedproductadapter.adapter = relatedAdapter
 
         fetchRelatedProducts.relatedProducts.observe(this) { products ->
             relatedAdapter.updateList(products)
@@ -424,22 +448,24 @@ class ProductDetailPage : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun fetchProductDetails(productId: Int) {
-        Log.d("ProductDetailPage", "Fetching product details for ID: $productId")
+        Log.d("ProductDetailPageprooductdetin", "Fetching product details for ID: $productId")
 
         RetrofitClient.iInstance.getProductsDetail(
             route = "wbapi/wbproductapi.getproduct",
-            productId = productId
+            productId = productId.toString()
         ).enqueue(object : Callback<ResponseBody> {
 
             @SuppressLint("DefaultLocale")
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (!response.isSuccessful || response.body() == null) {
+                    Log.d("gettingresponseforpdp", "onResponse: $response")
                     Toast.makeText(this@ProductDetailPage, "Failed to fetch product", Toast.LENGTH_SHORT).show()
                     return
                 }
 
                 try {
                     val jsonString = response.body()!!.string()
+                    Log.d("gettingresponseforpdp", "onResponse: $jsonString")
                     val json = JSONObject(jsonString)
                     val data = json.opt("data")
 
@@ -457,14 +483,23 @@ class ProductDetailPage : AppCompatActivity() {
                         return
                     }
 
-                    val baseUrl = "https://staging.buddykartstore.com/"
 
                     // Product details
-                    val name = productObj.optString("name", "N/A").replace(Regex("[^A-Za-z\\s]"), "").trim()
+                    val name = productObj.optString("name", "N/A").replace(Regex("[^A-Za-z0-9\\s]"), "").trim()
                     val price = String.format("%.2f", productObj.optDouble("price", 0.0))
                     val rating = productObj.optString("rating", "0")
-                    val mainImage = productObj.optString("image", "")
-                    val fullMainImage = if (mainImage.startsWith("http")) mainImage else "$baseUrl/image/$mainImage"
+                    val special = String.format("%.2f", productObj.optDouble("special", 0.0))
+
+                    val rawImage = productObj.optString("image", "")
+                    val decodedImage = Html.fromHtml(rawImage, Html.FROM_HTML_MODE_LEGACY).toString() // decode &amp;
+                    val encodedImage = decodedImage.replace(" ", "%20") // replace spaces
+                    val baseUrl = "https://hellobuddy.jkopticals.com/image/"
+                    val fullMainImage = if (encodedImage.startsWith("http")) {
+                        encodedImage
+                    } else {
+                        baseUrl + encodedImage
+                    }
+
 
                     // Parse description
                     val descriptionHtml = productObj.optString("description", "")
@@ -498,9 +533,17 @@ class ProductDetailPage : AppCompatActivity() {
                     val additionalImages = mutableListOf<RelatedImage>()
                     for (i in 0 until imageArray.length()) {
                         val imgObj = imageArray.getJSONObject(i)
-                        val imgUrl = imgObj.optString("image", "")
-                        val fullUrl = if (imgUrl.startsWith("http")) imgUrl else "$baseUrl/image/$imgUrl"
-                        additionalImages.add(RelatedImage(image = fullUrl, productId = productObj.optString("product_id")))
+                        val rawImage = imgObj.optString("image", "")
+                        val decodedImage = Html.fromHtml(rawImage, Html.FROM_HTML_MODE_LEGACY).toString() // decode &amp; to &
+                        val encodedImage = decodedImage.replace(" ", "%20") // encode spaces
+
+                        val baseUrl = "https://hellobuddy.jkopticals.com/image/"
+                        val fullMainImage = if (encodedImage.startsWith("http")) {
+                            encodedImage
+                        } else {
+                            baseUrl + encodedImage
+                        }
+                        additionalImages.add(RelatedImage(image = fullMainImage, productId = productObj.optString("product_id")))
                     }
 
                     // Combine main + additional images
@@ -509,12 +552,20 @@ class ProductDetailPage : AppCompatActivity() {
                         addAll(additionalImages)
                     }
 
+                    val actual = price
+                    val discount = special
+                    val disc = ((actual.toDouble() - discount.toDouble()) / actual.toDouble() * 100).toInt()
+
+
                     // Update UI
                     binding.productname.text = name
-                    binding.actualprice.text = price
-                    binding.discountprice.text = price
+                    binding.discountprice.text = "₹${special}"
+                    binding.actualprice.text = "₹${price}"
                     binding.descText.text = formattedText
                     binding.rating.text = "$rating ★"
+                    binding.discount.text = "${disc}%OFF"
+
+
 
                     // Update image slider adapter
                     adapterpdp.updateList(allImages)

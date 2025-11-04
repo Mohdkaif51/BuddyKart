@@ -1,6 +1,5 @@
 package com.example.buddy_kart_store.ui.recyclerviews
 
-import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -8,17 +7,33 @@ import com.example.buddy_kart_store.R
 import com.example.buddy_kart_store.model.retrofit_setup.login.FeaturedProduct
 import com.example.buddy_kart_store.ui.viewmodel.WishListVM
 import com.example.buddy_kart_store.ui.viewmodel.fetchCartVM
-import com.example.buddy_kart_store.utlis.HomeModule
-import kotlin.collections.toMutableList
 
-class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class ProductViewHolder(itemView: View, sharedPool: RecyclerView.RecycledViewPool) :
+    RecyclerView.ViewHolder(itemView) {
+
+    private val recyclerView: RecyclerView = itemView.findViewById(R.id.homeProductRecyclerView)
+    private var adapter: HomeProductRecyclerView? = null
+
+    init {
+        recyclerView.apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false).apply {
+                initialPrefetchItemCount = 4
+
+            }
+            setRecycledViewPool(sharedPool)
+            setHasFixedSize(true)
+            itemAnimator = null
+            isNestedScrollingEnabled = false
+
+        }
+    }
+
     fun bind(products: List<FeaturedProduct>, cartVM: fetchCartVM, wishlistVM: WishListVM) {
-        val recyclerView = itemView.findViewById<RecyclerView>(R.id.homeProductRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
-        recyclerView.adapter = HomeProductRecyclerView(
-            products.toMutableList(), cartVM, wishlistVM,
-
-        )
+        if (adapter == null) {
+            adapter = HomeProductRecyclerView(products.toMutableList(), cartVM, wishlistVM)
+            recyclerView.adapter = adapter
+        } else {
+            adapter?.updateData(products, cartVM, wishlistVM)
+        }
     }
 }
-

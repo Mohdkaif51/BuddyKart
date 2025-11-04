@@ -40,7 +40,7 @@ class ImageSlider @JvmOverloads constructor(
     fun setupSlider(images: MutableList<BannerItem>, adapter: RecyclerView.Adapter<*>? = null) {
         if (images.isEmpty()) return
 
-        viewPager?.adapter = adapter ?: ImageSliderAdapter(images)
+        viewPager?.adapter = adapter ?: ImageSliderAdapter(images , viewPager!!)
         viewPager?.offscreenPageLimit = 3
 
         // Setup indicator
@@ -69,6 +69,15 @@ class ImageSlider @JvmOverloads constructor(
 
         // Start auto-scroll
         sliderController?.startAutoScroll()
+
+        viewPager?.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                viewPager!!.post {
+                    viewPager!!.requestLayout()
+                }
+            }
+        })
     }
 
     fun startAutoScroll() = sliderController?.startAutoScroll()

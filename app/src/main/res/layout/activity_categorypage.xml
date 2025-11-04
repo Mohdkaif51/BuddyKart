@@ -71,7 +71,7 @@
                 android:layout_height="10dp"
                 android:background="@drawable/badge_background"
                 android:gravity="center"
-                android:textColor="@color/primaryYellow"
+                android:textColor="@color/red"
                 android:textSize="10sp"
                 android:layout_margin="6dp"
                 android:visibility="gone"
@@ -105,7 +105,7 @@
                 android:background="@drawable/badge_background"
                 android:clickable="false"
                 android:gravity="center"
-                android:textColor="@color/primaryYellow"
+                android:textColor="@color/red"
                 android:textSize="8sp"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -128,7 +128,8 @@
         android:id="@+id/ItemCategory"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="8dp"
+        android:padding="6dp"
+        android:background="@color/background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/verticaldivider"
         app:layout_constraintHorizontal_weight="0.25"
@@ -150,7 +151,8 @@
         android:id="@+id/subCategory"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="8dp"
+        android:padding="4dp"
+        android:background="@color/background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/verticaldivider"
         app:layout_constraintTop_toBottomOf="@+id/divider" />
@@ -159,6 +161,7 @@
         android:id="@+id/productListview"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="0.75"
@@ -184,13 +187,28 @@
             android:id="@+id/noProductsImage"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:src="@drawable/noproduct"
+            android:src="@drawable/placeholderbackgrounf"
+            android:background="@color/white"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <ProgressBar
+        android:id="@+id/progressbar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:indeterminateTint="@color/primaryYellow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

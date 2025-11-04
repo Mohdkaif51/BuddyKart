@@ -1,5 +1,6 @@
 package com.example.buddy_kart_store.model.repository
 
+import android.text.Html
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 
@@ -47,16 +48,22 @@ class FetchWishListRepo(private val apiService: apiService) {
                                 val name = productObj.optString("name", "N/A")
                                     .replace(Regex("[^A-Za-z\\s]"), "")
                                     .trim()
-                                val price = productObj.optString("price")
-                                val image = productObj.optString("thumb")
-                                val thumb = "https://hello.buddykartstore.com/image/$image"
+                                val price = productObj.optString("special")
+                                val actualPrice = productObj.optString("price")
+
+
+                                val rawThumb = productObj.optString("thumb")
+                                val decodedThumb = Html.fromHtml(rawThumb, Html.FROM_HTML_MODE_LEGACY).toString()
+                                val thumb = "https://hellobuddy.jkopticals.com/image/$decodedThumb"
 
                                 productList.add(
                                     TrendingProduct(
                                         product_id = productId,
                                         name = name,
                                         price = price,
-                                        imageUrl = thumb
+                                        imageUrl = thumb,
+                                        isWished = true,
+                                        actualPrice = actualPrice
                                     )
                                 )
                                 keyCount++

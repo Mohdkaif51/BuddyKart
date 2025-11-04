@@ -1,5 +1,6 @@
 package com.example.buddy_kart_store.model.repository
 
+import android.net.Uri
 import android.util.Log
 import com.example.buddy_kart_store.model.retrofit_setup.login.OrderDetail
 import com.example.buddy_kart_store.model.retrofit_setup.login.OrderDetails
@@ -16,6 +17,7 @@ import java.text.DecimalFormat
 class OrderSummeryRepo(private val apiService: apiService) {
 
     fun fetchOrderDetails(orderId: String, customerId: String, onResult: (OrderDetail) -> Unit) {
+        Log.d("gettingorderId", "fetchOrderDetails: $orderId")
         apiService.fetchOrderDetail(
             route = "wbapi/wborder.getorderinfo",
             orderId = orderId,
@@ -46,26 +48,46 @@ class OrderSummeryRepo(private val apiService: apiService) {
                             if (itemsMap.containsKey(productId)) {
                                 // Merge frontend info (image, formatted price)
                                 val existingItem = itemsMap[productId]!!
-                                val image = productJson.optString("image", existingItem.imageUrl)
+                                val baseUrl = "https://hellobuddy.jkopticals.com/image/"
+                                val rawImage = productJson.optString("image", existingItem.imageUrl)
+                                Log.d("gettingimage", "onResponse: $rawImage")
 
-                                val baseUrl = "https://hello.buddykartstore.com/"
-                                val fullImageUrl =
-                                    if (image.startsWith("http")) image else baseUrl + "image/" + image
+                                val decodedImage = rawImage.replace("&amp;", "&")
 
+                                val cleanImage = decodedImage.replace(" ", "%20")
 
+                                val fullImageUrl = if (cleanImage.startsWith("http", ignoreCase = true)) {
+                                    cleanImage
+                                } else {
+                                    baseUrl + cleanImage
+                                }
 
-                                Log.d("imagetag", "onResponse: $image")
+//                                Log.d("imagetag", "Full image URL: $fullImageUrl")
+
                                 val price = productJson.optString("total", existingItem.price)
                                 itemsMap[productId] =
                                     existingItem.copy(price = price, imageUrl = fullImageUrl)
                             } else {
-                                // Create new item from backend info
+                                val baseUrl = "https://hellobuddy.jkopticals.com/image/"
+                                val rawImage = productJson.optString("image")
+                                Log.d("gettingimage", "onResponse: $rawImage")
+
+                                val decodedImage = rawImage.replace("&amp;", "&")
+
+                                val cleanImage = decodedImage.replace(" ", "%20")
+
+                                val fullImageUrl = if (cleanImage.startsWith("http", ignoreCase = true)) {
+                                    cleanImage
+                                } else {
+                                    baseUrl + cleanImage
+                                }
+
                                 val item = OrderItem(
                                     id = productId,
                                     name = productJson.optString("name", ""),
                                     quantity = productJson.optString("quantity", "0").toInt(),
                                     price = productJson.optString("total", ""),
-                                    imageUrl = productJson.optString("image", "")
+                                    imageUrl = fullImageUrl
                                 )
                                 Log.d("imgaetagg", "onResponse: $item")
                                 itemsMap[productId] = item
@@ -78,12 +100,11 @@ class OrderSummeryRepo(private val apiService: apiService) {
 
                         // Parse totals
                         val totalsArray = orderInfo.getJSONArray("totals")
+                        Log.d("gettingtax", "onResponse: $totalsArray")
 
                         var subTotal = ""
                         var deliveryCharge = ""
-                        var flatShippingRate = ""
-                        var ecoTax = ""
-                        var vat = ""
+                        var taxAmount = ""
                         var grandTotal = ""
 
 // Decimal formatter
@@ -91,30 +112,23 @@ class OrderSummeryRepo(private val apiService: apiService) {
 
                         for (i in 0 until totalsArray.length()) {
                             val totalJson = totalsArray.getJSONObject(i)
-                            val code = totalJson.optString("code")
                             val title = totalJson.optString("title", "")
-                            val value = totalJson.optString("value", "0")
+                            val text = totalJson.optString("text", "₹0.00")
 
-                            // Format value to 2 decimal places safely
-                            val formattedValue = df.format(value.toDoubleOrNull() ?: 0.0)
+                            // Extract numeric part safely and format
+//                            val numericValue = text.replace(Regex("[^0-9.]"), "")
+//                            val formattedValue = df.format(numericValue.toDoubleOrNull() ?: 0.0)
 
-                            when (code) {
-                                "sub_total" -> subTotal = formattedValue
-                                "shipping" -> {
-                                    deliveryCharge = formattedValue
-                                    flatShippingRate = formattedValue
-                                }
-
-                                "tax" -> {
-                                    if (title.contains("Eco", ignoreCase = true)) ecoTax =
-                                        formattedValue
-                                    else if (title.contains("VAT", ignoreCase = true)) vat =
-                                        formattedValue
-                                }
-
-                                "total" -> grandTotal = formattedValue
+                            when {
+                                title.contains("Sub-Total", ignoreCase = true) -> subTotal = text
+                                title.contains("Shipping", ignoreCase = true) -> deliveryCharge = text
+                                title.contains("Tax", ignoreCase = true) -> taxAmount = text
+                                title.equals("Total", ignoreCase = true) -> grandTotal = text
                             }
                         }
+
+// ✅ Log or display values
+                        Log.d("TotalsParsed", "SubTotal=$subTotal, Shipping=$deliveryCharge, Tax=$taxAmount, Total=$grandTotal")
 
 // Now all values are ready in 2-decimal format
 
@@ -123,9 +137,9 @@ class OrderSummeryRepo(private val apiService: apiService) {
                             items = items,
                             subTotal = subTotal,
                             deliveryCharge = deliveryCharge,
-                            flatshippingrate = flatShippingRate,
-                            ecotax = ecoTax,
-                            vat = vat,
+                            flatshippingrate = deliveryCharge,
+                            ecotax = taxAmount,
+                            vat = deliveryCharge,
                             grandTotal = grandTotal
                         )
                         Log.d("summery", "onResponse: $orderSummary")

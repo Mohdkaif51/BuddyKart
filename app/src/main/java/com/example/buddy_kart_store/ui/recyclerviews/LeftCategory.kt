@@ -39,8 +39,8 @@ class LeftCategory(
 
         Glide.with(holder.itemView.context)
             .load(category.image)
-            .placeholder(R.drawable.categoryplaceholder)
-            .error(R.drawable.categoryplaceholder)
+            .placeholder(R.drawable.noproduct)
+            .error(R.drawable.noproduct)
             .into(holder.image)
 
         // Dynamically add badge/indicator

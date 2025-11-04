@@ -8,6 +8,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.webkit.CookieManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +33,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.regex.Pattern
+import androidx.core.content.edit
 
 class SignIn : AppCompatActivity() {
 
@@ -189,12 +191,60 @@ class SignIn : AppCompatActivity() {
                     ).show()
                     return
                 }
-
                 try {
-                    val jsonObject = JSONObject(responseBody)
+                    var rawResponse = responseBody ?: ""
+
+                    // 🧹 Clean out PHP warnings or HTML before JSON
+                    if (rawResponse.contains("{")) {
+                        rawResponse = rawResponse.substring(rawResponse.indexOf("{"))
+                    }
+
+                    // If still invalid or HTML-only, stop
+                    if (rawResponse.trimStart().startsWith("<") || rawResponse.isEmpty()) {
+                        Log.e("LoginError", "Invalid response (HTML or empty): $rawResponse")
+                        Toast.makeText(
+                            this@SignIn,
+                            "Server returned invalid response",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return
+                    }
+
+                    val jsonObject = JSONObject(rawResponse)
                     val success = jsonObject.optString("success") == "true"
                     val message = jsonObject.optString("message", "Something went wrong")
                     val sessionId = jsonObject.optString("session_id", "")
+
+//                    --------------------------------------------
+                    val cookieManager = CookieManager.getInstance()
+                    val prefs = getSharedPreferences("opencart_prefs", MODE_PRIVATE)
+                    val savedCookies = prefs.getString("OC_Cookies", null)
+                    Log.d("gettinnggcookiee", "onResponse: $savedCookies")
+
+                    if (!savedCookies.isNullOrEmpty()) {
+                        // ✅ Set cookies for your domain
+                        cookieManager.setCookie("https://hellobuddy.jkopticals.com/", savedCookies)
+                        cookieManager.flush()
+                        Log.d("COOKIE", "Restored cookies: $savedCookies")
+
+                        // ✅ Extract only OCSESSID value
+                        val sessionId = savedCookies
+                            .substringAfter("OCSESSID=")   // get everything after 'OCSESSID='
+                            .substringBefore(";")          // stop before next semicolon
+                            .trim()
+
+                        SessionManager.saveSessionId(this@SignIn, sessionId)
+                    } else {
+                        Log.d("COOKIE", "No cookies found — fresh session will start")
+                    }
+
+
+
+//                    -----------------------------------------
+
+
+
+                    Log.d("sessionidddddddd", "onCreate: $sessionId")
 
                     val data = jsonObject.optJSONObject("data")
                     var token: String? = null
@@ -206,22 +256,9 @@ class SignIn : AppCompatActivity() {
                         val lastName = data.optString("lastname")
                         val emailResp = data.optString("email")
                         val mobileNumber = data.optString("telephone")
-                        val sessionId = jsonObject.optString("session_id")
-                        Log.d("sessionid", "onResponse: $sessionId")
 
-                        // Handle custom fields array
-                        val customFields = data.optJSONArray("custom_field")
-                        if (customFields != null) {
-                            for (i in 0 until customFields.length()) {
-                                val field = customFields.optJSONObject(i)
-                                Log.d("CustomField", "Field $i: $field")
-                            }
-                        }
+                        Log.d("LoginData", "CustomerID: $customerId, Name: $firstName $lastName, Email: $emailResp")
 
-                        Log.d(
-                            "LoginData",
-                            "CustomerID: $customerId, Name: $firstName $lastName, Email: $emailResp"
-                        )
                         val sharedPref = Sharedpref(applicationContext)
                         sharedPref.saveUser(
                             firstName,
@@ -234,19 +271,14 @@ class SignIn : AppCompatActivity() {
                         val allPrefs = sharedPref.prefs.all
                         Log.d("SharedPreflogin", "All prefs after save: $allPrefs")
 
-
-
                         SessionManager.saveToken(this@SignIn, token ?: sessionId, sessionId)
                         SessionManager.saveCustomerId(this@SignIn, customerId)
-                        Log.d("Login", "Token: $token, CustomerId: $customerId saved securely")
-                        SessionManager.saveSessionId(this@SignIn, sessionId)
-
+//                        SessionManager.saveSessionId(this@SignIn, sessionId)
                     }
 
                     if (success) {
                         saveTokenSecure(token ?: sessionId)
                         Sharedpref(this@SignIn).setLogin(true)
-
                         Toast.makeText(this@SignIn, "Login Success", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@SignIn, MainActivity::class.java))
                         finish()
@@ -256,9 +288,9 @@ class SignIn : AppCompatActivity() {
 
                 } catch (e: Exception) {
                     Log.e("LoginError", "Parsing error", e)
-                    Toast.makeText(this@SignIn, "Parsing error: ${e.message}", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this@SignIn, "Parsing error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
+
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -282,7 +314,7 @@ class SignIn : AppCompatActivity() {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        sharedPreferences.edit().putString("auth_token", token).apply()
+        sharedPreferences.edit { putString("auth_token", token) }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

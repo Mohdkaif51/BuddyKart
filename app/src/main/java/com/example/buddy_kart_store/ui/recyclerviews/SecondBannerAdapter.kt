@@ -26,8 +26,8 @@ class BottomBannerAdapter(private val images: List<String>) :
 
         Glide.with(holder.itemView.context)
             .load(images[position])
-            .placeholder(R.drawable.download)
-            .error(R.drawable.download)
+            .placeholder(R.drawable.noproduct)
+            .error(R.drawable.noproduct)
             .into(holder.imageView)
 
         Log.d("geiingIages", "onBindViewHolder: $images")

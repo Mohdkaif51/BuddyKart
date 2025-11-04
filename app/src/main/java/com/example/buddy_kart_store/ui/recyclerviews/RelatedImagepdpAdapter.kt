@@ -47,8 +47,8 @@ class RelatedImagesPagerAdapter(
         fun bind(image: RelatedImage) {
             Glide.with(binding.root.context)
                 .load(image.image)
-                .placeholder(R.drawable.download)
-                .error(R.drawable.download)
+                .placeholder(R.drawable.noproduct)
+                .error(R.drawable.noproduct)
                 .into(binding.relatedImage)
         }
     }

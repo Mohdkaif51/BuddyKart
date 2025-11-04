@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.Html
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -30,8 +31,7 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
-
+import kotlin.text.replace
 
 
 class Categorypage : AppCompatActivity() {
@@ -201,10 +201,12 @@ class Categorypage : AppCompatActivity() {
             fetchCategoryProducts(category.id)
         }
     }
-
+//fetch subcategory
     private fun parseCategory(jsonObject: JSONObject): categories {
-        val name = jsonObject.optString("name")
-        val id = jsonObject.optInt("category_id")  // Keep as Int
+    val rawName = jsonObject.optString("name")
+
+    val name = Html.fromHtml(rawName, Html.FROM_HTML_MODE_LEGACY).toString().trim()
+    val id = jsonObject.optInt("category_id")  // Keep as Int
         val image = jsonObject.optString("image")
         val childrenList = mutableListOf<categories>()
         val childrenArray = jsonObject.optJSONArray("children")
@@ -217,6 +219,7 @@ class Categorypage : AppCompatActivity() {
     }
 
     private fun fetchCategoryProducts(categoryId: String) {
+        Log.d("gettingcategoryid", "fetchCategoryProducts: $categoryId")
         RetrofitClient.iInstance.getCategoryProduct(
             route = "wbapi/productapi.getproduct",
             category_id = categoryId.toString()
@@ -231,17 +234,26 @@ class Categorypage : AppCompatActivity() {
 
                     for (i in 0 until dataArray.length()) {
                         val obj = dataArray.getJSONObject(i)
-                        val imgurl = obj.optString("image")
-                        val baseUrl = "https://hello.buddykartstore.com/image"
-                        val imageUrl = if (imgurl.startsWith("http")) imgurl else "$baseUrl/$imgurl"
+                        val imgUrl = obj.optString("image")
+                        val baseUrl = "https://hellobuddy.jkopticals.com/image/"
+
+// Decode HTML entities (&amp; -> &)
+                        val cleanPath = imgUrl
+                            .replace("&amp;", "&")
+                            .replace(" ", "%20") // Encode spaces for safety
+
+                        val fullImageUrl =
+                            if (cleanPath.startsWith("http")) cleanPath else baseUrl + cleanPath
+
+                        Log.d("ImageURL", fullImageUrl)
 
                         categoryProducts.add(
                             CategoryProduct(
-                                name = obj.optString("name"),
-                                imageUrl = imageUrl,
+                                name = obj.optString("name").replace(Regex("[^A-Za-z0-9\\s]"), "").trim(),
+                                imageUrl = fullImageUrl,
                                 productId = obj.optInt("product_id"),
-                                price = String.format("%.2f", obj.optDouble("price")),
-                                discount = obj.optString("discount")
+                                price = String.format("%.2f", obj.optDouble("special")),
+                                discount = String.format("%.2f", obj.optDouble("price"))
                             )
                         )
                     }

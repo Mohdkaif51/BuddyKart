@@ -2,6 +2,7 @@ package com.example.buddy_kart_store.utlis
 
 import android.app.Application
 import android.content.Context
+import android.provider.Settings
 import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import com.google.firebase.FirebaseApp
 
@@ -10,12 +11,21 @@ class MyApp : Application() {
         super.onCreate()
         instance = this
         FirebaseApp.initializeApp(this)
+        settings = Settings()
+
     }
 
     companion object {
         lateinit var instance: MyApp
             private set
+        lateinit var settings: Settings
+
     }
+    class Settings {
+        var sessionId: String? = null
+        // other fields...
+    }
+
 
 
     object AppPrefs {

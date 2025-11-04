@@ -20,8 +20,8 @@ class FullscreenImageAdapter(private val images: List<RelatedImage> ,
         fun bind(item: RelatedImage) {
             Glide.with(binding.root.context)
                 .load(item.image)
-                .placeholder(R.drawable.download)
-                .error(R.drawable.download)
+                .placeholder(R.drawable.noproduct)
+                .error(R.drawable.noproduct)
                 .fitCenter()
                 .into(binding.relatedImage)
         }

@@ -2,6 +2,7 @@ package com.example.buddy_kart_store.model.retrofit_setup.login
 
 import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -63,10 +64,10 @@ interface apiService {
 
     @FormUrlEncoded
     @POST("index.php?route=wbapi/searchquery.searchproduct")
-    fun searchProducts(
+    suspend fun searchProducts(
         @Field("route") route: String,
         @Field("search") search: String
-    ): Call<ResponseBody>
+    ): Response<ResponseBody>
 
 
     @FormUrlEncoded
@@ -80,7 +81,7 @@ interface apiService {
     @POST("index.php")
     fun getProductsDetail(
         @Query("route") route: String = "wbapi/wbproductapi.getproduct",
-        @Field("product_id") productId: Int
+        @Field("product_id") productId: String
     ): Call<ResponseBody>
 
 
@@ -116,8 +117,8 @@ interface apiService {
     fun changePassword(
         @Query("route") route: String = "wbapi/passwordchange.change",
         @Field("customer_id") customerId: String,
-        @Field("password") newPassword: String, // Naya field joda gaya
-        @Field("confirm") confirmPassword: String // Naya field joda gaya
+        @Field("password") newPassword: String,
+        @Field("confirm") confirmPassword: String
     ): Call<ResponseBody>
 
     @FormUrlEncoded
@@ -282,8 +283,9 @@ interface apiService {
 
     ): Call<ResponseBody>
 
-    @GET("https://hello.buddykartstore.com/index.php?route=wbapi/homepageapi.gethomepage")
-    fun getHome(): Call<ResponseBody>
+    @GET("https://hellobuddy.jkopticals.com/index.php?route=wbapi/homepageapi.gethomepage")
+    suspend fun getHome(): Response<ResponseBody>
+
 
     @FormUrlEncoded
     @POST("index.php")

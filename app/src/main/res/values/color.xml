@@ -4,14 +4,37 @@
     <color name="white">#FFFFFFFF</color>
     <color name="button">#FFC53B</color>
     <color name="red">#FF0000</color>
-    <color name="colorPrimary">#FFC107</color>        <!-- Yellow (Primary) -->
-    <color name="primaryYellow">#FFC107</color>        <!-- Yellow (Primary) -->
-    <color name="colorPrimaryVariant">#FFA000</color> <!-- Darker Yellow -->
-    <color name="colorOnPrimary">#000000</color>      <!-- Black text/icons on Yellow -->
+    <color name="colorPrimary">#66b8ea</color>        <!-- Royal Blue -->
+    <color name="colorPrimaryVariant">#0D47A1</color> <!-- Deep Blue -->
+    <color name="colorOnPrimary">#FFFFFF</color>      <!-- White text/icons on Blue -->
 
-    <color name="colorSecondary">#FFFFFFFF</color>      <!-- Black (Secondary accent) -->
-    <color name="colorSecondaryVariant">#212121</color> <!-- Dark Gray -->
-    <color name="colorOnSecondary">#FFFFFF</color>    <!-- White text/icons on Black -->
+    66b8ea
+
+    <!-- ✅ Accent Colors -->
+    <color name="colorSecondary">#FFC107</color>        <!-- Bright Amber Yellow -->
+    <color name="colorSecondaryVariant">#FFA000</color> <!-- Golden Yellow -->
+    <color name="colorOnSecondary">#000000</color>      <!-- Black text/icons on Yellow -->
+
+    <!-- ✅ Backgrounds -->
+    <color name="surface">#F5F5F5</color>             <!-- Light Gray for cards -->
+    <color name="divider">#E0E0E0</color>
+
+    <!-- ✅ Text Colors -->
+    <color name="textPrimary">#212121</color>         <!-- Dark Gray text -->
+    <color name="textSecondary">#757575</color>       <!-- Medium Gray -->
+
+    <!-- ✅ Buttons / Highlights -->
+    <color name="buttonBackground">#1976D2</color>    <!-- Blue buttons -->
+    <color name="buttonText">#FFFFFF</color>          <!-- White button text -->
+    <color name="highlight">#FFC107</color>           <!-- Yellow highlights (badges, deals) -->
+
+    <!-- ✅ Status / Alerts -->
+    <color name="success">#388E3C</color>             <!-- Green -->
+    <color name="error">#D32F2F</color>               <!-- Red -->
+    <color name="warning">#FFA000</color>             <!-- Amber -->
+
+    <!-- ✅ Optional -->
+    <color name="primaryYellow">#66b8ea</color>     <!-- White text/icons on Black -->
     <color name="gray">#787878</color>
     <!-- White text/icons on Black -->
     <color name="facebookBlue">#1877F2</color>

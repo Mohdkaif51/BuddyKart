@@ -12,6 +12,8 @@ object SessionManager {
     private const val KEY_CUSTOMER_ID = "customer_id"
 
     private const val KEY_SESSION_ID = "session_id"
+    private const val PREFS_NAME = "UserSession"
+    private const val KEY_GUEST_ID = "guest_id"
 
     private fun getSharedPreferences(context: Context) =
         EncryptedSharedPreferences.create(
@@ -65,6 +67,18 @@ object SessionManager {
     fun getSessionId(context: Context): String? {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         return prefs.getString(KEY_SESSION_ID, null)
+    }
+
+    fun saveGuestId(context: Context, guestId: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_GUEST_ID, guestId)
+            .apply()
+    }
+
+    fun getGuestId(context: Context): String? {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_GUEST_ID, null)
     }
 
 }

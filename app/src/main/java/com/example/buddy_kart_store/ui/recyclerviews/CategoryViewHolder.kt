@@ -12,12 +12,13 @@ import com.example.buddy_kart_store.R
 import com.example.buddy_kart_store.model.retrofit_setup.login.TopCategory
 import com.example.buddy_kart_store.ui.Home.Categorypage
 
-class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class CategoryViewHolder(itemView: View , sharedPool: RecyclerView.RecycledViewPool) : RecyclerView.ViewHolder(itemView) {
     fun bind(categories: MutableList<TopCategory>) {
         val recyclerView = itemView.findViewById<RecyclerView>(R.id.categoryRecyclerView)
         recyclerView.layoutManager =
             LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
         recyclerView.adapter = TopCategoryAdapter(categories)
+
 
         val button = itemView.findViewById<TextView>(R.id.Viewall)
         button.setOnClickListener {

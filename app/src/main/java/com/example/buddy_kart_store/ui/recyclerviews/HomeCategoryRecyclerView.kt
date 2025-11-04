@@ -1,5 +1,6 @@
 package com.example.buddy_kart_store.ui.recyclerviews
 
+import android.R.attr.category
 import android.annotation.SuppressLint
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,6 +16,9 @@ import com.example.buddy_kart_store.ui.Home.Categorypage
 
 class TopCategoryAdapter(private val categories: MutableList<TopCategory>) :
     RecyclerView.Adapter<TopCategoryAdapter.TopCategoryViewHolder>() {
+
+
+
 
     inner class TopCategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.categoryImage)
@@ -47,6 +51,7 @@ class TopCategoryAdapter(private val categories: MutableList<TopCategory>) :
             Categorypage.launch(holder.itemView.context, category.id.toInt())
 
         }
+
     }
 
 
@@ -58,6 +63,6 @@ class TopCategoryAdapter(private val categories: MutableList<TopCategory>) :
     fun updateList(newList: List<TopCategory>) {
         categories.clear()
         categories.addAll(newList)
-        notifyDataSetChanged()
+//        notifyDataSetChanged()
     }
 }

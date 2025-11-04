@@ -17,27 +17,24 @@ class HomeRepo(private val apiService: apiService) {
 
     val homeModulesLiveData = MutableLiveData<List<HomeModule>>()
 
-    fun fetchHomePage() {
-        apiService.getHome().enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+    suspend fun fetchHomePage() {
+        try {
+            val response = apiService.getHome()
+            if (response.isSuccessful) {
+                val body = response.body()?.string() ?: return
+                Log.d("gettingresponse", "onResponse: $body")
 
+                val jsonArray = JSONArray(body)
+                Log.d("gettingjson", "onResponse: $jsonArray")
 
-                try {
-                    val body = response.body()?.string() ?: return
-                    val jsonArray = JSONArray(body)
-                    Log.d("gettingjson", "onResponse: $jsonArray")
-                    val modules = parseHomeJson(jsonArray)
-                    homeModulesLiveData.postValue(modules)
-
-                } catch (e: Exception) {
-                    Log.e("HomeRepo", "Parse error: ${e.message}")
-                }
+                val modules = parseHomeJson(jsonArray)
+                homeModulesLiveData.postValue(modules)
+            } else {
+                Log.e("HomeRepo", "Error: ${response.code()}")
             }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Log.e("HomeRepo", "API Failure: ${t.message}")
-            }
-        })
+        } catch (e: Exception) {
+            Log.e("HomeRepo", "Exception: ${e.message}")
+        }
     }
 
     private fun parseHomeJson(jsonArray: JSONArray): List<HomeModule> {
@@ -51,9 +48,8 @@ class HomeRepo(private val apiService: apiService) {
                     for (j in 0 until arr.length()) {
                         val b = arr.getJSONObject(j)
                         val image = b.getString("image")
-                        val thumb = "https://hello.buddykartstore.com/image/$image"
-                        Log.d("gettingimagein", "parseHomeJson: $image")
-
+                        val thumb = image  // already full URL
+                        Log.d("ImageURL", "URL: $thumb")
                         banners.add(
                             BannerItem(
                                 b.getString("title"),
@@ -71,7 +67,7 @@ class HomeRepo(private val apiService: apiService) {
                     for (j in 0 until arr.length()) {
                         val c = arr.getJSONObject(j)
                         val raw = c.getString("name")
-                        val name = raw.replace(Regex("[^A-Za-z\\s]"), "").trim()
+                        val name = raw.replace(Regex("[^A-Za-z0-9\\s]"), "").trim()
                         categories.add(
                             TopCategory(
                                 c.getString("category_id"),
@@ -87,21 +83,25 @@ class HomeRepo(private val apiService: apiService) {
 
                 "featured" -> {
                     val products = mutableListOf<FeaturedProduct>()
-                    val arr = obj.getJSONArray("prods")
+                    val arr = obj.getJSONArray("products")
                     for (j in 0 until arr.length()) {
                         val p = arr.getJSONObject(j)
                         val raw = p.getString("name")
-                        val name = raw.replace(Regex("[^A-Za-z\\s]"), "").trim()
+                        val name = raw.replace(Regex("[^A-Za-z0-9\\s]"), "").trim()
+                        val actualPrice = p.getString("price")
+
+
                         products.add(
                             FeaturedProduct(
                                 p.getString("product_id"),
                                 name,
-                                p.getString("thumb"),
+                                p.getString("image"),
                                 p.getString("description"),
-                                p.getString("tax"),
+                                p.getString("special"),
                                 p.optInt("rating", 0),
                                 p.getString("href"),
-                                p.optBoolean("favorite", false)
+                                p.optBoolean("favorite", false),
+                                actualPrice.toDouble()
                             )
                         )
                     }
